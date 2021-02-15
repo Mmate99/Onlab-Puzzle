@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Rush_Hour.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -10,10 +11,16 @@ namespace Rush_Hour.Models
         public int MapHeight { get; set; }
         public Dictionary<int, MapObject> Map { get; set; } = new Dictionary<int, MapObject>();
 
+        private Dictionary<char, DirectionEnum> enums = 
+            new Dictionary<char, DirectionEnum> { { 'f', DirectionEnum.Up },
+                                                  { 'l', DirectionEnum.Down },
+                                                  { 'j', DirectionEnum.Right },
+                                                  { 'b', DirectionEnum.Left }};
+
         public void ExcecuteCommand(string cmd)
         {
             var command = cmd.Split(" ");
-            var dir = Char.Parse(command[1]);
+            var dir = enums[Char.Parse(command[1])];
             var m = Int32.Parse(command[2]);
 
             var vehicle = Map.Values.Where(v => v.Code == Char.Parse(command[0]))
@@ -33,54 +40,25 @@ namespace Rush_Hour.Models
             }
         }
 
-        private void UpdateMap(char dir, int minPos, int maxPos, Vehicle vehicle)
+        private void UpdateMap(DirectionEnum dir, int minPos, int maxPos, Vehicle vehicle)
         {
-            switch (dir)
+            var newPos = maxPos;
+            var oldPos = minPos;
+            if (dir == DirectionEnum.Up || dir == DirectionEnum.Left)
             {
-                case 'f':
-                    Map[minPos - 10] = vehicle; //map[minp-10] = map[maxpos]; - lehet ez is jó lenne és akkor nem kéne átvenni a vehicle-t
-                    Map[maxPos] = new EmptyPlace(' ');
-                    break;
-
-                case 'b':
-                    Map[minPos - 1] = vehicle;
-                    Map[maxPos] = new EmptyPlace(' ');
-                    break;
-
-                case 'l':
-                    Map[maxPos + 10] = vehicle;
-                    Map[minPos] = new EmptyPlace(' ');
-                    break;
-
-                case 'j':
-                    Map[maxPos + 1] = vehicle;
-                    Map[minPos] = new EmptyPlace(' ');
-                    break;
-
-                default:
-                    throw new Exception("Valami nem jó!");
+                newPos = minPos;
+                oldPos = maxPos;
             }
+
+            Map[newPos + (int)dir] = vehicle;   //map[minp-10] = map[maxpos]; - lehet ez is jó lenne és akkor nem kéne átvenni a vehicle-t
+            Map[oldPos] = new EmptyPlace(' ');
         }
 
-        private bool IsNeighbourFree(char dir, int minPos, int maxPos)
+        private bool IsNeighbourFree(DirectionEnum dir, int minPos, int maxPos)
         {
-            switch (dir)
-            {
-                case 'f':
-                    return Map[minPos - 10].Code == ' ';
+            var position = (dir == DirectionEnum.Up || dir == DirectionEnum.Left) ? minPos : maxPos;
 
-                case 'b':
-                    return Map[minPos - 1].Code == ' ';
-
-                case 'l':
-                    return Map[maxPos + 10].Code == ' ';
-
-                case 'j':
-                    return Map[maxPos + 1].Code == ' ';
-
-                default:
-                    throw new Exception("Valami nem jó!");
-            }
+            return Map[position + (int)dir].Code == ' ';
         }
     }
 }

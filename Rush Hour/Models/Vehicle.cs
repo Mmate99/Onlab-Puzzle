@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Rush_Hour.Enums;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -12,34 +13,12 @@ namespace Rush_Hour.Models
 
         public Vehicle(char c) : base(c) { }
 
-        public void MoveToDirection(char dir)
+        public void MoveToDirection(DirectionEnum dir)
         {
             var newList = new List<int>();
-            switch (dir)
-            {
-                case 'f':
-                    Positions.ForEach(p => newList.Add(p - 10));
-                    Positions = newList;
-                    break;
 
-                case 'b':
-                    Positions.ForEach(p => newList.Add(p - 1));
-                    Positions = newList;
-                    break;
-
-                case 'l':
-                    Positions.ForEach(p => newList.Add(p + 10));
-                    Positions = newList;
-                    break;
-
-                case 'j':
-                    Positions.ForEach(p => newList.Add(p + 1));
-                    Positions = newList;
-                    break;
-
-                default:
-                    throw new Exception("Valami nem jó!");
-            }
+            Positions.ForEach(p => newList.Add(p + (int)dir));
+            Positions = newList;
         }
     }
 }
