@@ -13,22 +13,52 @@ namespace Rush_Hour.Models
         public void ExcecuteCommand(string cmd)
         {
             var command = cmd.Split(" ");
-            var dir = command[1][0];
+            var dir = Char.Parse(command[1]);
+            var m = Int32.Parse(command[2]);
 
-            List<Vehicle> vehicles = Map.Values.Where(v => v.Code == command[0][0])
+            var vehicle = Map.Values.Where(v => v.Code == Char.Parse(command[0]))
                                                 .Cast<Vehicle>()
-                                                .ToList();
+                                                .FirstOrDefault();
 
-            var minPos = vehicles[0].Positions.Min();
-            var maxPos = vehicles[0].Positions.Max();
-            var currentPositions = vehicles[0].Positions;
-
-            if (IsNeighbourFree(dir, minPos, maxPos))
+            for (int i = 0; i < m; i++)
             {
-                foreach (var v in vehicles)
+                var minPos = vehicle.Positions.Min();
+                var maxPos = vehicle.Positions.Max();
+
+                if (IsNeighbourFree(dir, minPos, maxPos))
                 {
-                    v.MoveToDirection(dir);
+                    vehicle.MoveToDirection(dir);
+                    UpdateMap(dir, minPos, maxPos, vehicle);
                 }
+            }
+        }
+
+        private void UpdateMap(char dir, int minPos, int maxPos, Vehicle vehicle)
+        {
+            switch (dir)
+            {
+                case 'f':
+                    Map[minPos - 10] = vehicle; //map[minp-10] = map[maxpos]; - lehet ez is jó lenne és akkor nem kéne átvenni a vehicle-t
+                    Map[maxPos] = new EmptyPlace(' ');
+                    break;
+
+                case 'b':
+                    Map[minPos - 1] = vehicle;
+                    Map[maxPos] = new EmptyPlace(' ');
+                    break;
+
+                case 'l':
+                    Map[maxPos + 10] = vehicle;
+                    Map[minPos] = new EmptyPlace(' ');
+                    break;
+
+                case 'j':
+                    Map[maxPos + 1] = vehicle;
+                    Map[minPos] = new EmptyPlace(' ');
+                    break;
+
+                default:
+                    throw new Exception("Valami nem jó!");
             }
         }
 
