@@ -27,6 +27,7 @@ namespace Rush_Hour.Models
                                                 .Cast<Vehicle>()
                                                 .FirstOrDefault();
 
+            //if (IsOrientationEquivalent(dir, vehicle))
             for (int i = 0; i < m; i++)
             {
                 var minPos = vehicle.Positions.Min();
@@ -59,6 +60,13 @@ namespace Rush_Hour.Models
             var position = (dir == DirectionEnum.Up || dir == DirectionEnum.Left) ? minPos : maxPos;
 
             return Map[position + (int)dir].Code == ' ';
+        }
+
+        private bool IsOrientationEquivalent(DirectionEnum dir, Vehicle vehicle)
+        {
+            var orientation = (dir == DirectionEnum.Up || dir == DirectionEnum.Down) ? 1 : 0;
+
+            return orientation == vehicle.Orientation;
         }
     }
 }
