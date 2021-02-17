@@ -17,19 +17,24 @@ namespace Rush_Hour
             game.MapWidth = lines[0].Length;
             game.MapHeight = lines.Length;
 
-            InitializeMap(lines);
+            InitializeGame(lines);
             dh.Draw(game);
 
-            while (true)
+            while (game.GameStillOn)
             {
                 var command = Console.ReadLine();
                 game.ExcecuteCommand(command);
                 dh.Draw(game);
             }
+
+            Console.WriteLine("You Won!");
+            //TODO: lépésszám, idő kiírása
         }
 
-        private static void InitializeMap(string[] lines)
+        private static void InitializeGame(string[] lines)
         {
+            #region Map init
+            //Init Map
             for (int j = 0; j < game.MapHeight; j++)
             {
                 var line = lines[j];
@@ -72,6 +77,16 @@ namespace Rush_Hour
                             game.Map.Add(pos, vehicle);
                             break;
                     }
+                }
+            }
+            #endregion
+
+            //Init Vehicles
+            foreach (var item in game.Map)
+            {
+                if(item.Value.Code >= 'A' && item.Value.Code <= 'z')
+                {
+                    ((Vehicle)item.Value).CalcOrientation();
                 }
             }
         }

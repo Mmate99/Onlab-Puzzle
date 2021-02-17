@@ -7,6 +7,7 @@ namespace Rush_Hour.Models
 {
     public class Game
     {
+        public bool GameStillOn { get; private set; } = true;
         public int MapWidth { get; set; }
         public int MapHeight { get; set; }
         public Dictionary<int, MapObject> Map { get; set; } = new Dictionary<int, MapObject>();
@@ -27,21 +28,33 @@ namespace Rush_Hour.Models
                                                 .Cast<Vehicle>()
                                                 .FirstOrDefault();
 
-            //if (IsOrientationEquivalent(dir, vehicle))
-            for (int i = 0; i < m; i++)
+            if (IsOrientationEquivalent(dir, vehicle))
             {
-                var minPos = vehicle.Positions.Min();
-                var maxPos = vehicle.Positions.Max();
-
-                if (IsNeighbourFree(dir, minPos, maxPos))
+                for (int i = 0; i < m; i++)
                 {
-                    vehicle.MoveToDirection(dir);
-                    UpdateMap(dir, minPos, maxPos, vehicle);
+                    var minPos = vehicle.Positions.Min();
+                    var maxPos = vehicle.Positions.Max();
+
+                    if (IsNeighbourFree(dir, minPos, maxPos))
+                    {
+                        vehicle.MoveToDirection(dir);
+                        UpdateMap(dir, minPos, maxPos);
+                    }
                 }
+
+                IsGameWon();
             }
         }
 
-        private void UpdateMap(DirectionEnum dir, int minPos, int maxPos, Vehicle vehicle)
+        private void IsGameWon()
+        {
+            var exitCode = Map.First(go => go.Value.Code == '0').Key;
+
+            if (Map[exitCode - 1].Code == 'a')
+                GameStillOn = false;
+        }
+
+        private void UpdateMap(DirectionEnum dir, int minPos, int maxPos)
         {
             var newPos = maxPos;
             var oldPos = minPos;
@@ -51,7 +64,7 @@ namespace Rush_Hour.Models
                 oldPos = maxPos;
             }
 
-            Map[newPos + (int)dir] = vehicle;   //map[minp-10] = map[maxpos]; - lehet ez is jó lenne és akkor nem kéne átvenni a vehicle-t
+            Map[newPos + (int)dir] = Map[oldPos];
             Map[oldPos] = new EmptyPlace(' ');
         }
 
