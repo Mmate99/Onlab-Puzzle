@@ -35,7 +35,7 @@ namespace Rush_Hour.Models
                     var minPos = vehicle.Positions.Min();
                     var maxPos = vehicle.Positions.Max();
 
-                    if (IsNeighbourFree(dir, minPos, maxPos))
+                    if (IsNeighbourFree(dir, vehicle)) // minPos, maxPos))
                     {
                         vehicle.MoveToDirection(dir);
                         UpdateMap(dir, minPos, maxPos);
@@ -68,8 +68,11 @@ namespace Rush_Hour.Models
             Map[oldPos] = new EmptyPlace(' ');
         }
 
-        private bool IsNeighbourFree(DirectionEnum dir, int minPos, int maxPos)
+        private bool IsNeighbourFree(DirectionEnum dir, Vehicle vehicle) // int minPos, int maxPos)
         {
+            var minPos = vehicle.Positions.Min();
+            var maxPos = vehicle.Positions.Max();
+
             var position = (dir == DirectionEnum.Up || dir == DirectionEnum.Left) ? minPos : maxPos;
 
             return Map[position + (int)dir].Code == ' ';
