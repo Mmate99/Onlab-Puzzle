@@ -21,10 +21,10 @@ namespace Rush_Hour.Solver
      *      if not                      -> 7                Nem
      * 6: Delete map and parents        -> 3                Nem
      * 7: Store map in list
-     *      if GameStillOn == false     -> FINISH Nem, de talán easy :D
+     *      if GameStillOn == false     -> FINISH           Nem, de talán easy :D
      *      if GameStillOn == true      -> 3                Nem
      *
-     * We need to check the solvability somewhere           Nem
+     * We need to check the solvability somewhere           Meghívni!
      *
      * Megvalósítás egy állapotgép(state machine) formájában működhet?
      * Enumokkal, meg saját függvényekkel...
@@ -50,6 +50,11 @@ namespace Rush_Hour.Solver
         public void SolveGame()
         {
             // TODO: Implement
+
+            while (GameContinues() && IsSolvable())
+            {
+
+            }
         }
 
         private Dictionary<int, MapObject> GetNextMap(MapTree currentMap)
@@ -58,16 +63,30 @@ namespace Rush_Hour.Solver
             // Kikeresi a következő mapet a listából
             // Nem olyan egyszerű, mert folyamatosan változik a lista hossza
 
-            var parentKey = currentMap.ParentKey;
-            var nextMap = mapTree.Where(map => map.ParentKey == parentKey)
-                                                        .FirstOrDefault();
+            // Nem igazán jó, még gondolkodom rajta
 
-            return nextMap.Map;
+            var parentKey = currentMap.ParentKey;
+            var lastKey = mapTree.Where(maps => maps.ParentKey == parentKey).Last().Key;
+            var currentMapKey = mapTree.Find(maps => maps.Map.Equals(currentMap)).Key;
+
+            if (lastKey == currentMapKey)
+            {
+                var nextMapParent = mapTree.Where(map => map.Key == (currentMapKey + 1))
+                                                            .FirstOrDefault();
+                return nextMapParent.Map;
+            }
+            else
+            {
+                var nextMapChild = mapTree.Where(map => map.Key == parentKey)
+                                                            .FirstOrDefault();
+                return nextMapChild.Map;
+            }
         }
 
         private void GetVehicles(Dictionary<int, MapObject> currentMap)
         {
-            vehicleList.Clear();    // Nem akarjuk, hogy a kocsik régi helyzete benn legyen
+            // Nem akarjuk, hogy a kocsik régi helyzete benn legyen
+            vehicleList.Clear();
 
             var runUntilFalse = true;
             var increment = 97;
@@ -86,22 +105,26 @@ namespace Rush_Hour.Solver
             }
         }
 
-        private string[] CommandList()
+        private List<string> CommandList(Dictionary<int, MapObject> currentMap)
         {
             // TODO: Implement
             // Megadja az összes parancsot, amiből elérhetjük a következő állapotokat
             // Ha üres listát dob vissza, akkor egyértelműen nem megoldható
             // Ez elég nehéz...
+
+            var tempMap = currentMap;
+
             return null;
         }
 
-        private int CompareMaps()
+        private int ContainsMap(Dictionary<int, MapObject> currentMap)
         {
             // TODO: Implement
             // Megmondja, hogy az új map létezik-e
             // Azért int, hogy állapotgéppel meg lehessen oldani
             // De jó a bool is
-            return 0;
+            // 1 - már létezik // 0 - nem létezik még
+            return mapTree.Exists(maps => maps.Map.Equals(currentMap)) ? 1 : 0;
         }
 
         private void DeleteFromTree()
@@ -111,10 +134,15 @@ namespace Rush_Hour.Solver
             // A szüleit azért, mert ha zsákutca, akkor zsákutca
         }
 
-        private void StoreMap()
+        private void StoreMap(Dictionary<int, MapObject> currentMap, Dictionary<int, MapObject> newMap, string cmd)
         {
             // TODO: Implement
             // Berakja a lista végére az új mapet
+
+            var uniqueKey = mapTree.Last().Key + 1;
+            var parentKey = mapTree.First(maps => maps.Map.Equals(currentMap)).Key;
+
+            mapTree.Add(new MapTree(uniqueKey, parentKey, newMap, cmd));
         }
 
         private bool GameContinues()
@@ -130,7 +158,7 @@ namespace Rush_Hour.Solver
             // Megomndja, hogy megoldható-e vagy sem
             // Kb úgy kellene, hogy ha a mapek listája üres lesz,
             // akkor nem megoldható a puzzle
-            return true;
+            return !vehicleList.Any();
         }
     }
 }

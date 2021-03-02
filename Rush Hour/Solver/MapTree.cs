@@ -14,18 +14,21 @@ namespace Rush_Hour.Solver
 
         public MapTree(int key, int parentKey, Dictionary<int, MapObject> map, string command)
         {
+            // Ez csak növekvő és egyedi!
             this.Key = key;
+            // Ez mindig a szülőé
             this.ParentKey = parentKey;
+            // Ez a tényleges map
             this.Map = map;
+            // Ez az a command, amelyikkel az adott map-et létrehozzuk
             this.Command = command;
         }
 
         public MapTree(Dictionary<int, MapObject> map)
         {
-            // Ez csak növekvő és egyedi!
             this.Key = 0;
-            // Ez mindig a szülőé
-            this.ParentKey = 0;
+            // -1, mert akkor ez is unique
+            this.ParentKey = -1;
             this.Map = map;
             this.Command = "";
         }
