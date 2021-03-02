@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
+using Rush_Hour.Enums;
 
 namespace Rush_Hour.Solver
 {
@@ -59,12 +60,12 @@ namespace Rush_Hour.Solver
             }
         }
 
-        private Dictionary<int, MapObject> GetNextMap(MapTree currentMap)
+        private MapTree GetNextMap(MapTree currentMap)
         {
             // TODO: Implement
             // Kikeresi a következő mapet a listából
 
-            return mapTree.First(maps => maps.Key == (currentMap.Key + 1)).Map;
+            return mapTree.First(maps => maps.Key == (currentMap.Key + 1));
         }
 
         private void GetVehicles(Dictionary<int, MapObject> currentMap)
@@ -89,16 +90,36 @@ namespace Rush_Hour.Solver
             }
         }
 
-        private List<string> GetCommands(Dictionary<int, MapObject> currentMap)
+        private List<string> GetCommands(List<Vehicle> vehicles)
         {
             // TODO: Implement
             // Megadja az összes parancsot, amiből elérhetjük a következő állapotokat
             // Ha üres listát dob vissza, akkor egyértelműen nem megoldható
             // Ez elég nehéz...
+            // Lehet azt is csinálni, hogy egy globális változóba dobjuk be a cmd-ket,
+            // mint a kocsik esetében. Vagy azokat rakjuk át lokálisba...
 
-            var tempMap = currentMap;
+            List<string> cmds = new List<string>();
 
-            return null;
+            // A matekja: n*n-es pálya, egy sorban vagy ozslopban 2 fal van,
+            // és a legkisebb kocsi az 2-es. Azaz a 6 szabad helyen max 4-et mozoghat
+            var maxMoves = Math.Sqrt(mapTree[0].Map.Count()) - 4;
+            
+            foreach (Vehicle vehicle in vehicles)
+            {
+                var directions = (vehicle.Orientation == 0) ? new[] { "b", "j" } : new[] { "f", "l" };
+
+                foreach (string dir in directions)
+                {
+                    for (int i = 1; i <= maxMoves; i++)
+                    {
+                        string singleCmd = Char.ToString(vehicle.Code) + " " + dir + " " + $"{ i }";
+                        cmds.Add(singleCmd);
+                    }
+                }
+            }
+
+            return cmds;
         }
 
         private int ContainsMap(Dictionary<int, MapObject> currentMap)
@@ -117,13 +138,13 @@ namespace Rush_Hour.Solver
             // Kitörli a haszontalan mapet és a szüleit a listából
             // A szüleit azért, mert ha zsákutca, akkor zsákutca
 
+            mapTree.Find(maps => maps.Map.Equals(currentMap)).DeadEnd = true;
             var tempMap = currentMap;
 
             while (!HasChildren(tempMap))
             {
-                // Nem jó, mivel az eredetit nem módosítom...
-                tempMap.DeadEnd = true;
                 tempMap = mapTree.Find(maps => maps.Key == tempMap.ParentKey);
+                mapTree.Find(maps => maps.Key == tempMap.ParentKey).DeadEnd = true;
             }
         }
 
@@ -162,7 +183,7 @@ namespace Rush_Hour.Solver
             if(mapTree.Exists(maps => maps.ParentKey == map.Key))
             {
                 var tempMaps = mapTree.FindAll(maps => maps.ParentKey == map.Key);
-                tempMaps.ForEach(maps => { hasChildren = hasChildren & maps.DeadEnd; });
+                tempMaps.ForEach(maps => { hasChildren = hasChildren | !maps.DeadEnd; });
             }
 
             return hasChildren;
