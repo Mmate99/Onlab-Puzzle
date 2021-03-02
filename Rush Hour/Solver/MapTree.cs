@@ -11,6 +11,7 @@ namespace Rush_Hour.Solver
         public int ParentKey { get; set; }
         public Dictionary<int, MapObject> Map { get; set; } = new Dictionary<int, MapObject>();
         public string Command { get; set; }
+        public bool DeadEnd { get; set; }
 
         public MapTree(int key, int parentKey, Dictionary<int, MapObject> map, string command)
         {
@@ -22,6 +23,8 @@ namespace Rush_Hour.Solver
             this.Map = map;
             // Ez az a command, amelyikkel az adott map-et létrehozzuk
             this.Command = command;
+            // Amikor létrehozzuk, még nem tudjuk, hogy zsákutca-e
+            this.DeadEnd = false;
         }
 
         public MapTree(Dictionary<int, MapObject> map)
@@ -31,6 +34,7 @@ namespace Rush_Hour.Solver
             this.ParentKey = -1;
             this.Map = map;
             this.Command = "";
+            this.DeadEnd = false;
         }
     }
 }
