@@ -18,7 +18,7 @@ namespace Rush_Hour.Models
                                                   { 'j', DirectionEnum.Right },
                                                   { 'b', DirectionEnum.Left }};
 
-        public void ExcecuteCommand(string cmd)
+        public Dictionary<int, MapObject> ExcecuteCommand(string cmd)
         {
             var command = cmd.Split(" ");
             var dir = enums[Char.Parse(command[1])];
@@ -44,6 +44,8 @@ namespace Rush_Hour.Models
 
                 IsGameWon();
             }
+
+            return Map;
         }
 
         private void IsGameWon()

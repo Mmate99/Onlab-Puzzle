@@ -29,10 +29,15 @@ namespace Rush_Hour.Solver
 
         public MapTree(Dictionary<int, MapObject> map)
         {
+            foreach (var m in map)
+            {
+                Map.Add(m.Key, m.Value);
+            }
+
             this.Key = 0;
             // -1, mert akkor ez is unique
             this.ParentKey = -1;
-            this.Map = map;
+            // this.Map = map;
             this.Command = "";
             this.DeadEnd = false;
         }

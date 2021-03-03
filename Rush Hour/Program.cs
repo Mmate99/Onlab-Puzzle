@@ -1,5 +1,6 @@
 ﻿using Rush_Hour.Helpers;
 using Rush_Hour.Models;
+using Rush_Hour.Solver;
 using System;
 using System.IO;
 using System.Linq;
@@ -18,6 +19,10 @@ namespace Rush_Hour
             game.MapHeight = lines.Length;
 
             InitializeGame(lines);
+
+            var rh = new RushHourSolver(game);
+            rh.SolveGame();
+
             dh.Draw(game);
 
             while (game.GameStillOn)

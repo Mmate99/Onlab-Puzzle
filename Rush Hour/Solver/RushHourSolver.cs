@@ -54,6 +54,18 @@ namespace Rush_Hour.Solver
         {
             // TODO: Implement
 
+            GetVehicles(mapTree[0].Map);
+            var commands = GetCommands(vehicleList);
+            foreach(var cmd in commands)
+            {
+                var newMap = RushGame.ExcecuteCommand(cmd);
+                if (ContainsMap(newMap) == 0)
+                {
+                    StoreMap(mapTree[0], newMap, cmd);
+                }
+
+            }
+
             while (GameContinues() && IsSolvable())
             {
 
@@ -70,23 +82,26 @@ namespace Rush_Hour.Solver
 
         private void GetVehicles(Dictionary<int, MapObject> currentMap)
         {
+            // Lokális vált.
             // Nem akarjuk, hogy a kocsik régi helyzete benn legyen
             vehicleList.Clear();
 
             var runUntilFalse = true;
             var increment = 97;
 
-            while (runUntilFalse)
+            while (true) // runUntilFalse)
             {
-                var vehicle = currentMap.Values.Where(v => v.Code == (char)increment)
+                // teszt mert nem biztos, h kell a "?"
+                var vehicle = currentMap.Values.Where(v => v.Code == (char)increment)?
                                                          .Cast<Vehicle>()
                                                          .FirstOrDefault();
+
+                if (vehicle == null) break; // runUntilFalse = false;
 
                 // Ha üres lesz a lista, akkor nagyon nagy gond van
                 vehicleList.Add(vehicle);
                 
                 increment++;
-                if (vehicle == null) runUntilFalse = false;
             }
         }
 
@@ -113,7 +128,7 @@ namespace Rush_Hour.Solver
                 {
                     for (int i = 1; i <= maxMoves; i++)
                     {
-                        string singleCmd = Char.ToString(vehicle.Code) + " " + dir + " " + $"{ i }";
+                        string singleCmd = Char.ToString(vehicle.Code) + " " + dir + " " + $"{ i }"; // a j 1
                         cmds.Add(singleCmd);
                     }
                 }
@@ -129,6 +144,7 @@ namespace Rush_Hour.Solver
             // Azért int, hogy állapotgéppel meg lehessen oldani
             // De jó a bool is
             // 1 - már létezik // 0 - nem létezik még
+            var test = mapTree[0].Map.Equals(currentMap);
             return mapTree.Exists(maps => maps.Map.Equals(currentMap)) ? 1 : 0;
         }
 
@@ -139,22 +155,22 @@ namespace Rush_Hour.Solver
             // A szüleit azért, mert ha zsákutca, akkor zsákutca
 
             mapTree.Find(maps => maps.Map.Equals(currentMap)).DeadEnd = true;
-            var tempMap = currentMap;
+            var parent = currentMap;
 
-            while (!HasChildren(tempMap))
+            while (!HasChildren(parent))
             {
-                tempMap = mapTree.Find(maps => maps.Key == tempMap.ParentKey);
-                mapTree.Find(maps => maps.Key == tempMap.ParentKey).DeadEnd = true;
+                parent = mapTree.Find(maps => maps.Key == parent.ParentKey);
+                mapTree.Find(maps => maps.Key == parent.ParentKey).DeadEnd = true;
             }
         }
 
-        private void StoreMap(Dictionary<int, MapObject> currentMap, Dictionary<int, MapObject> newMap, string cmd)
+        private void StoreMap(MapTree currentMap, Dictionary<int, MapObject> newMap, string cmd)
         {
             // TODO: Implement
             // Berakja a lista végére az új mapet
 
             var uniqueKey = mapTree.Last().Key + 1;
-            var parentKey = mapTree.First(maps => maps.Map.Equals(currentMap)).Key;
+            var parentKey = currentMap.Key;
 
             mapTree.Add(new MapTree(uniqueKey, parentKey, newMap, cmd));
         }
@@ -171,19 +187,21 @@ namespace Rush_Hour.Solver
             // Megomndja, hogy megoldható-e vagy sem
             // Kb úgy kellene, hogy ha a mapek listája üres lesz,
             // akkor nem megoldható a puzzle
-            return !vehicleList.Any();
+
+            // NEM JÓ
+            return !mapTree.Any();
         }
 
-        private bool HasChildren(MapTree map)
+        private bool HasChildren(MapTree currentMap)
         {
             // Megnézi, hogy egy map-nek vannak-e gyerekei
             // és hogy azok zsákutcák-e
             var hasChildren = false;
 
-            if(mapTree.Exists(maps => maps.ParentKey == map.Key))
+            if(mapTree.Exists(map => map.ParentKey == currentMap.Key))
             {
-                var tempMaps = mapTree.FindAll(maps => maps.ParentKey == map.Key);
-                tempMaps.ForEach(maps => { hasChildren = hasChildren | !maps.DeadEnd; });
+                var children = mapTree.FindAll(map => map.ParentKey == currentMap.Key);
+                children.ForEach(child => { hasChildren = hasChildren | !child.DeadEnd; });
             }
 
             return hasChildren;
