@@ -28,7 +28,7 @@ namespace Rush_Hour
             while (game.GameStillOn)
             {
                 var command = Console.ReadLine();
-                game.ExcecuteCommand(command);
+                //game.ExcecuteCommand(game.Map, command);
                 dh.Draw(game);
             }
 

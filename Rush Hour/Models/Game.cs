@@ -1,4 +1,5 @@
 ﻿using Rush_Hour.Enums;
+using Rush_Hour.Solver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,16 +19,25 @@ namespace Rush_Hour.Models
                                                   { 'j', DirectionEnum.Right },
                                                   { 'b', DirectionEnum.Left }};
 
-        public Dictionary<int, MapObject> ExcecuteCommand(string cmd)   //TODO: map objektet átvenni, hogy azon végezzük el a műveletet
+        public Dictionary<int, MapObject> ExcecuteCommand(MapTree mapTree, string cmd)   //TODO: map objektet átvenni, hogy azon végezzük el a műveletet
         {
-            var ret = new Dictionary<int, MapObject>();
+            var mapTreeClone = mapTree.Clone();
+            var ret = mapTreeClone.Map;
+            
+
+            //var ret = new Dictionary<int, MapObject>();
+            //foreach (var t in map)
+            //{
+            //    ret.Add(t.Key, t.Value);
+            //}
+
             int tempV = 0;
 
             var command = cmd.Split(" ");
             var dir = enums[Char.Parse(command[1])];
             var m = Int32.Parse(command[2]);
 
-            var vehicle = Map.Values.Where(v => v.Code == Char.Parse(command[0]))
+            var vehicle = ret.Values.Where(v => v.Code == Char.Parse(command[0]))
                                                 .Cast<Vehicle>()
                                                 .FirstOrDefault();
 
@@ -38,10 +48,10 @@ namespace Rush_Hour.Models
                     var minPos = vehicle.Positions.Min();
                     var maxPos = vehicle.Positions.Max();
 
-                    if (IsNeighbourFree(dir, minPos, maxPos))
+                    if (IsNeighbourFree(ret, dir, minPos, maxPos))
                     {
                         vehicle.MoveToDirection(dir);
-                        UpdateMap(dir, minPos, maxPos);
+                        UpdateMap(ret, dir, minPos, maxPos);
                         tempV++;
                     }
                 }
@@ -49,24 +59,24 @@ namespace Rush_Hour.Models
                 IsGameWon();
             }
 
-            foreach (var t in Map)
-            {
-                ret.Add(t.Key, t.Value);
-            }
+            //foreach (var t in Map)
+            //{
+            //    ret.Add(t.Key, t.Value);
+            //}
 
 
             //lefut akkor is ha nem mozdulunk abba az irányba
-            for (int i = 0; i < tempV; i++)
-            {
-                var minPos = vehicle.Positions.Min();
-                var maxPos = vehicle.Positions.Max();
+            //for (int i = 0; i < tempV; i++)
+            //{
+            //    var minPos = vehicle.Positions.Min();
+            //    var maxPos = vehicle.Positions.Max();
 
-                if (IsNeighbourFree((DirectionEnum)((int)dir * (-1)), minPos, maxPos))
-                {
-                    vehicle.MoveToDirection((DirectionEnum)((int)dir * (-1)));
-                    UpdateMap((DirectionEnum)((int)dir * (-1)), minPos, maxPos);    //ezek nem biztos hogy kellenek (alsó tuti nem)
-                }
-            }
+            //    if (IsNeighbourFree((DirectionEnum)((int)dir * (-1)), minPos, maxPos))
+            //    {
+            //        vehicle.MoveToDirection((DirectionEnum)((int)dir * (-1)));
+            //        UpdateMap((DirectionEnum)((int)dir * (-1)), minPos, maxPos);    //ezek nem biztos hogy kellenek (alsó tuti nem)
+            //    }
+            //}
 
             return ret;
         }
@@ -79,7 +89,7 @@ namespace Rush_Hour.Models
                 GameStillOn = false;
         }
 
-        private void UpdateMap(DirectionEnum dir, int minPos, int maxPos)
+        private void UpdateMap(Dictionary<int, MapObject> map,  DirectionEnum dir, int minPos, int maxPos)
         {
             var newPos = maxPos;
             var oldPos = minPos;
@@ -90,20 +100,20 @@ namespace Rush_Hour.Models
             }
 
             var tempMap = new Dictionary<int, MapObject>();
-            foreach (var m in Map)
+            foreach (var m in map)
             {
                 tempMap.Add(m.Key, m.Value);
             }
 
-            Map[newPos + (int)dir] = Map[oldPos];
-            Map[oldPos] = new EmptyPlace(' ');
+            map[newPos + (int)dir] = map[oldPos];
+            map[oldPos] = new EmptyPlace(' ');
         }
 
-        private bool IsNeighbourFree(DirectionEnum dir, int minPos, int maxPos)
+        private bool IsNeighbourFree(Dictionary<int, MapObject> map, DirectionEnum dir, int minPos, int maxPos)
         {
             var position = (dir == DirectionEnum.Up || dir == DirectionEnum.Left) ? minPos : maxPos;
 
-            return Map[position + (int)dir].Code == ' ';
+            return map[position + (int)dir].Code == ' ';
         }
 
         private bool IsOrientationEquivalent(DirectionEnum dir, Vehicle vehicle)

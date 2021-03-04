@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 using Rush_Hour.Enums;
+using Rush_Hour.Helpers;
 
 namespace Rush_Hour.Solver
 {
@@ -52,23 +53,47 @@ namespace Rush_Hour.Solver
 
         public void SolveGame()
         {
-            // TODO: Implement
+            DrawingHelper dh = new DrawingHelper();
 
-            GetVehicles(mapTree[0].Map);
+            var currentMap = mapTree[0];
+            GetVehicles(currentMap.Map);
             var commands = GetCommands(vehicleList);
             foreach(var cmd in commands)
             {
-                var newMap = RushGame.ExcecuteCommand(cmd);
+                var newMap = RushGame.ExcecuteCommand(currentMap, cmd);
                 if (ContainsMap(newMap) == false)
                 {
-                    StoreMap(mapTree[0], newMap, cmd);
+                    StoreMap(currentMap, newMap, cmd);
                 }
 
             }
 
             while (GameContinues() && IsSolvable())
             {
+                dh.Draw(currentMap.Map);
+                currentMap = GetNextMap(currentMap);
 
+                if (currentMap == null)
+                {
+                    var asd  = "asd";
+                }
+
+                GetVehicles(currentMap.Map);
+                commands = GetCommands(vehicleList);
+                bool hasValidChildren = false;
+
+                foreach (var cmd in commands)
+                {
+                    var newMap = RushGame.ExcecuteCommand(currentMap, cmd);
+                    if (ContainsMap(newMap) == false)
+                    {
+                        StoreMap(currentMap, newMap, cmd);
+                        hasValidChildren = true;
+                    }
+                }
+
+                if (!hasValidChildren)
+                    SetDeadEnd(currentMap);
             }
         }
 
@@ -77,7 +102,7 @@ namespace Rush_Hour.Solver
             // TODO: Implement
             // Kikeresi a következő mapet a listából
 
-            return mapTree.First(maps => maps.Key == (currentMap.Key + 1));
+            return mapTree.FirstOrDefault(maps => maps.Key == (currentMap.Key + 1));
         }
 
         private void GetVehicles(Dictionary<int, MapObject> currentMap)
@@ -170,13 +195,16 @@ namespace Rush_Hour.Solver
             // Kitörli a haszontalan mapet és a szüleit a listából
             // A szüleit azért, mert ha zsákutca, akkor zsákutca
 
-            mapTree.Find(maps => maps.Map.Equals(currentMap)).DeadEnd = true;
+            currentMap.DeadEnd = true;
             var parent = currentMap;
 
             while (!HasChildren(parent))
             {
                 parent = mapTree.Find(maps => maps.Key == parent.ParentKey);
-                mapTree.Find(maps => maps.Key == parent.ParentKey).DeadEnd = true;
+                if (parent != null)
+                    parent.DeadEnd = true;
+                if (parent is null)
+                    break;
             }
         }
 
@@ -205,7 +233,7 @@ namespace Rush_Hour.Solver
             // akkor nem megoldható a puzzle
 
             // NEM JÓ
-            return !mapTree.Any();
+            return mapTree.Any();
         }
 
         private bool HasChildren(MapTree currentMap)
@@ -213,6 +241,8 @@ namespace Rush_Hour.Solver
             // Megnézi, hogy egy map-nek vannak-e gyerekei
             // és hogy azok zsákutcák-e
             var hasChildren = false;
+
+            var childrenasdgf = mapTree.Where(map => map.ParentKey == currentMap.Key);
 
             if(mapTree.Exists(map => map.ParentKey == currentMap.Key))
             {

@@ -23,5 +23,21 @@ namespace Rush_Hour.Helpers
                 h += 1;
             }
         }
+
+        public void Draw(Dictionary<int, MapObject> map)
+        {
+
+            int h = 0;
+            while (h < 5)
+            {
+                string line = "";
+                for (int w = 0; w < 8; w++)
+                {
+                    line += map[h * 10 + w].Code;
+                }
+                Console.WriteLine(line);
+                h += 1;
+            }
+        }
     }
 }
