@@ -15,12 +15,17 @@ namespace Rush_Hour.Solver
 
         public MapTree(int key, int parentKey, Dictionary<int, MapObject> map, string command)
         {
+            foreach (var m in map)
+            {
+                Map.Add(m.Key, m.Value);
+            }
+
             // Ez csak növekvő és egyedi!
             this.Key = key;
             // Ez mindig a szülőé
             this.ParentKey = parentKey;
             // Ez a tényleges map
-            this.Map = map;
+            //this.Map = map;
             // Ez az a command, amelyikkel az adott map-et létrehozzuk
             this.Command = command;
             // Amikor létrehozzuk, még nem tudjuk, hogy zsákutca-e

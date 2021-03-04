@@ -18,8 +18,11 @@ namespace Rush_Hour.Models
                                                   { 'j', DirectionEnum.Right },
                                                   { 'b', DirectionEnum.Left }};
 
-        public Dictionary<int, MapObject> ExcecuteCommand(string cmd)
+        public Dictionary<int, MapObject> ExcecuteCommand(string cmd)   //TODO: map objektet átvenni, hogy azon végezzük el a műveletet
         {
+            var ret = new Dictionary<int, MapObject>();
+            int tempV = 0;
+
             var command = cmd.Split(" ");
             var dir = enums[Char.Parse(command[1])];
             var m = Int32.Parse(command[2]);
@@ -35,17 +38,37 @@ namespace Rush_Hour.Models
                     var minPos = vehicle.Positions.Min();
                     var maxPos = vehicle.Positions.Max();
 
-                    if (IsNeighbourFree(dir, vehicle)) // minPos, maxPos))
+                    if (IsNeighbourFree(dir, minPos, maxPos))
                     {
                         vehicle.MoveToDirection(dir);
                         UpdateMap(dir, minPos, maxPos);
+                        tempV++;
                     }
                 }
 
                 IsGameWon();
             }
 
-            return Map;
+            foreach (var t in Map)
+            {
+                ret.Add(t.Key, t.Value);
+            }
+
+
+            //lefut akkor is ha nem mozdulunk abba az irányba
+            for (int i = 0; i < tempV; i++)
+            {
+                var minPos = vehicle.Positions.Min();
+                var maxPos = vehicle.Positions.Max();
+
+                if (IsNeighbourFree((DirectionEnum)((int)dir * (-1)), minPos, maxPos))
+                {
+                    vehicle.MoveToDirection((DirectionEnum)((int)dir * (-1)));
+                    UpdateMap((DirectionEnum)((int)dir * (-1)), minPos, maxPos);    //ezek nem biztos hogy kellenek (alsó tuti nem)
+                }
+            }
+
+            return ret;
         }
 
         private void IsGameWon()
@@ -66,15 +89,18 @@ namespace Rush_Hour.Models
                 oldPos = maxPos;
             }
 
+            var tempMap = new Dictionary<int, MapObject>();
+            foreach (var m in Map)
+            {
+                tempMap.Add(m.Key, m.Value);
+            }
+
             Map[newPos + (int)dir] = Map[oldPos];
             Map[oldPos] = new EmptyPlace(' ');
         }
 
-        private bool IsNeighbourFree(DirectionEnum dir, Vehicle vehicle) // int minPos, int maxPos)
+        private bool IsNeighbourFree(DirectionEnum dir, int minPos, int maxPos)
         {
-            var minPos = vehicle.Positions.Min();
-            var maxPos = vehicle.Positions.Max();
-
             var position = (dir == DirectionEnum.Up || dir == DirectionEnum.Left) ? minPos : maxPos;
 
             return Map[position + (int)dir].Code == ' ';

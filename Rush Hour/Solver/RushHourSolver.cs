@@ -59,7 +59,7 @@ namespace Rush_Hour.Solver
             foreach(var cmd in commands)
             {
                 var newMap = RushGame.ExcecuteCommand(cmd);
-                if (ContainsMap(newMap) == 0)
+                if (ContainsMap(newMap) == false)
                 {
                     StoreMap(mapTree[0], newMap, cmd);
                 }
@@ -137,15 +137,31 @@ namespace Rush_Hour.Solver
             return cmds;
         }
 
-        private int ContainsMap(Dictionary<int, MapObject> currentMap)
+        private bool ContainsMap(Dictionary<int, MapObject> currentMap)
         {
             // TODO: Implement
             // Megmondja, hogy az új map létezik-e
             // Azért int, hogy állapotgéppel meg lehessen oldani
             // De jó a bool is
             // 1 - már létezik // 0 - nem létezik még
-            var test = mapTree[0].Map.Equals(currentMap);
-            return mapTree.Exists(maps => maps.Map.Equals(currentMap)) ? 1 : 0;
+
+            bool matchingExists = false;
+
+            foreach (var node in mapTree)
+            {
+                bool changeMatchingValuable = true;
+                foreach(var mapTile in currentMap)
+                {
+                    var key = mapTile.Key;
+                    if (mapTile.Value.GetType() != node.Map.GetValueOrDefault(key).GetType())
+                        changeMatchingValuable = false;
+                }
+
+                if (changeMatchingValuable)
+                    matchingExists = true;
+            }
+
+            return matchingExists;
         }
 
         private void SetDeadEnd(MapTree currentMap)
