@@ -1,4 +1,5 @@
 ﻿using Rush_Hour.Models;
+using Rush_Hour.Solver;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -24,11 +25,15 @@ namespace Rush_Hour.Helpers
             }
         }
 
-        public void Draw(Dictionary<int, MapObject> map)
+        public void Draw(MapTree mapTree)
         {
 
+            var map = mapTree.Map;
             int h = 0;
-            while (h < 5)
+            Console.WriteLine($"Azonosító: {mapTree.Key}");
+            Console.WriteLine($"Szülő azonosító: {mapTree.ParentKey}");
+            Console.WriteLine($"Parancs: {mapTree.Command}");
+            while (h < Math.Sqrt(map.Count))
             {
                 string line = "";
                 for (int w = 0; w < 8; w++)

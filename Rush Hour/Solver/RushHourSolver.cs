@@ -43,7 +43,14 @@ namespace Rush_Hour.Solver
     {
         public Game RushGame { get; set; }
         private List<MapTree> mapTree = new List<MapTree>();
-        private List<Vehicle> vehicleList = new List<Vehicle>();
+        private List<Vehicle> currentVehicleList = new List<Vehicle>();
+
+        private Dictionary<char, DirectionEnum> enums =
+            new Dictionary<char, DirectionEnum> { { 'f', DirectionEnum.Up },
+                                                  { 'l', DirectionEnum.Down },
+                                                  { 'j', DirectionEnum.Right },
+                                                  { 'b', DirectionEnum.Left }};
+        private List<string> tempCommands = new List<string>();
 
         public RushHourSolver(Game game)
         {
@@ -57,7 +64,8 @@ namespace Rush_Hour.Solver
 
             var currentMap = mapTree[0];
             GetVehicles(currentMap.Map);
-            var commands = GetCommands(vehicleList);
+            var commands = GetCommands(currentMap.Map, currentVehicleList);
+            tempCommands.AddRange(commands);
             foreach(var cmd in commands)
             {
                 var newMap = RushGame.ExcecuteCommand(currentMap, cmd);
@@ -70,7 +78,7 @@ namespace Rush_Hour.Solver
 
             while (GameContinues() && IsSolvable())
             {
-                dh.Draw(currentMap.Map);
+                dh.Draw(currentMap);
                 currentMap = GetNextMap(currentMap);
 
                 if (currentMap == null)
@@ -79,7 +87,8 @@ namespace Rush_Hour.Solver
                 }
 
                 GetVehicles(currentMap.Map);
-                commands = GetCommands(vehicleList);
+                commands = GetCommands(currentMap.Map, currentVehicleList);
+                tempCommands.AddRange(commands);
                 bool hasValidChildren = false;
 
                 foreach (var cmd in commands)
@@ -94,6 +103,11 @@ namespace Rush_Hour.Solver
 
                 if (!hasValidChildren)
                     SetDeadEnd(currentMap);
+
+                if (IsGameWon(currentMap.Map)) 
+                {
+                    var sdf = "as";
+                }
             }
         }
 
@@ -109,7 +123,7 @@ namespace Rush_Hour.Solver
         {
             // Lokális vált.
             // Nem akarjuk, hogy a kocsik régi helyzete benn legyen
-            vehicleList.Clear();
+            currentVehicleList.Clear();
 
             var runUntilFalse = true;
             var increment = 97;
@@ -124,13 +138,13 @@ namespace Rush_Hour.Solver
                 if (vehicle == null) break; // runUntilFalse = false;
 
                 // Ha üres lesz a lista, akkor nagyon nagy gond van
-                vehicleList.Add(vehicle);
+                currentVehicleList.Add(vehicle);
                 
                 increment++;
             }
         }
 
-        private List<string> GetCommands(List<Vehicle> vehicles)
+        private List<string> GetCommands(Dictionary<int, MapObject> currentMap, List<Vehicle> vehicles)
         {
             // TODO: Implement
             // Megadja az összes parancsot, amiből elérhetjük a következő állapotokat
@@ -143,7 +157,7 @@ namespace Rush_Hour.Solver
 
             // A matekja: n*n-es pálya, egy sorban vagy ozslopban 2 fal van,
             // és a legkisebb kocsi az 2-es. Azaz a 6 szabad helyen max 4-et mozoghat
-            var maxMoves = Math.Sqrt(mapTree[0].Map.Count()) - 4;
+            var maxMoves = Math.Sqrt(mapTree[0].Map.Count()) - 4;   //ha a pálya 6*6-os akkor már ez egyből rossz
             
             foreach (Vehicle vehicle in vehicles)
             {
@@ -153,13 +167,31 @@ namespace Rush_Hour.Solver
                 {
                     for (int i = 1; i <= maxMoves; i++)
                     {
-                        string singleCmd = Char.ToString(vehicle.Code) + " " + dir + " " + $"{ i }"; // a j 1
-                        cmds.Add(singleCmd);
+                        if (IsWayClear(currentMap, vehicle, dir, i))
+                        {
+                            string singleCmd = Char.ToString(vehicle.Code) + " " + dir + " " + $"{ i }"; // a j 1
+                            cmds.Add(singleCmd);
+                        }
                     }
                 }
             }
 
             return cmds;
+        }
+
+        private bool IsWayClear(Dictionary<int, MapObject> currentMap, Vehicle vehicle, string direction, int numOfSteps)
+        {
+            var dir = enums[Char.Parse(direction)];
+            var position = (dir == DirectionEnum.Up || dir == DirectionEnum.Left) ? vehicle.Positions.Min() : vehicle.Positions.Max();
+
+            for (int i = 1; i <= numOfSteps; i++)
+            {
+                var nextPosIndex = position + i*(int)dir;
+                if (currentMap[nextPosIndex].Code != ' ')
+                    return false;
+            }
+
+            return true;
         }
 
         private bool ContainsMap(Dictionary<int, MapObject> currentMap)
@@ -251,6 +283,21 @@ namespace Rush_Hour.Solver
             }
 
             return hasChildren;
+        }
+
+        private bool IsGameWon(Dictionary<int, MapObject> map)
+        {
+            var pos = map.First(go => go.Value.Code == '0').Key;
+
+            while (true)
+            {
+                if (map[pos - 1].Code == 'a')
+                    return true;
+                else if (map[pos - 1].Code != ' ')
+                    return false;
+
+                pos--;
+            }
         }
     }
 }
