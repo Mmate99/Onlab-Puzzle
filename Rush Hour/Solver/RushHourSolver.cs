@@ -106,7 +106,28 @@ namespace Rush_Hour.Solver
 
                 if (IsGameWon(currentMap.Map)) 
                 {
-                    var sdf = "as";
+                    Console.WriteLine("-------------------------------------------------------------------------------------------------");
+                    var currMap = currentMap;
+                    MapTree parent = null;
+                    var moves = new List<MapTree>();
+                    while (true)
+                    {
+                        var parentKey = currMap.ParentKey;
+                        parent = mapTree.FirstOrDefault(mt => mt.Key == parentKey);
+                        moves.Add(currMap);
+                        currMap = parent;
+
+                        if (currMap.ParentKey == -1)
+                        {
+                            moves.Add(currMap);
+                            moves.Reverse();
+
+                            foreach(var map in moves)
+                            {
+                                dh.Draw(map);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -247,8 +268,9 @@ namespace Rush_Hour.Solver
 
             var uniqueKey = mapTree.Last().Key + 1;
             var parentKey = currentMap.Key;
+            var ply = currentMap.Ply + 1;
 
-            mapTree.Add(new MapTree(uniqueKey, parentKey, newMap, cmd));
+            mapTree.Add(new MapTree(uniqueKey, parentKey, newMap, cmd, ply));
         }
 
         private bool GameContinues()
@@ -274,11 +296,10 @@ namespace Rush_Hour.Solver
             // és hogy azok zsákutcák-e
             var hasChildren = false;
 
-            var childrenasdgf = mapTree.Where(map => map.ParentKey == currentMap.Key);
+            var children = mapTree.FindAll(map => map.ParentKey == currentMap.Key);
 
-            if(mapTree.Exists(map => map.ParentKey == currentMap.Key))
+            if (children.Count > 0)
             {
-                var children = mapTree.FindAll(map => map.ParentKey == currentMap.Key);
                 children.ForEach(child => { hasChildren = hasChildren | !child.DeadEnd; });
             }
 

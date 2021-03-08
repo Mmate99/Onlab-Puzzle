@@ -33,6 +33,7 @@ namespace Rush_Hour.Helpers
             Console.WriteLine($"Azonosító: {mapTree.Key}");
             Console.WriteLine($"Szülő azonosító: {mapTree.ParentKey}");
             Console.WriteLine($"Parancs: {mapTree.Command}");
+            Console.WriteLine($"Mélység: {mapTree.Ply}");
             while (h < Math.Sqrt(map.Count))
             {
                 string line = "";

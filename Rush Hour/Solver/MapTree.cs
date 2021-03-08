@@ -13,17 +13,19 @@ namespace Rush_Hour.Solver
         public Dictionary<int, MapObject> Map { get; set; } = new Dictionary<int, MapObject>();
         public string Command { get; set; }
         public bool DeadEnd { get; set; }
+        public int Ply { get; set; }
 
-        public MapTree(int key, int parentKey, string command, bool deadEnd) 
+        public MapTree(int key, int parentKey, string command, bool deadEnd, int ply) 
         {
             //tuti nem ref???
             Key = key;
             ParentKey = parentKey;
             Command = command;
             DeadEnd = deadEnd;
+            Ply = ply;
         }
 
-        public MapTree(int key, int parentKey, Dictionary<int, MapObject> map, string command)
+        public MapTree(int key, int parentKey, Dictionary<int, MapObject> map, string command, int ply)
         {
             foreach (var m in map)
             {
@@ -40,6 +42,7 @@ namespace Rush_Hour.Solver
             this.Command = command;
             // Amikor létrehozzuk, még nem tudjuk, hogy zsákutca-e
             this.DeadEnd = false;
+            Ply = ply;
         }
 
         public MapTree(Dictionary<int, MapObject> map)
@@ -55,11 +58,12 @@ namespace Rush_Hour.Solver
             // this.Map = map;
             this.Command = "";
             this.DeadEnd = false;
+            Ply = 0;
         }
 
         public MapTree Clone()
         {
-            var clone = new MapTree(Key, ParentKey, Command, DeadEnd);
+            var clone = new MapTree(Key, ParentKey, Command, DeadEnd, Ply);
             foreach (var mapTile in Map)
             {
                 var key = mapTile.Key;
