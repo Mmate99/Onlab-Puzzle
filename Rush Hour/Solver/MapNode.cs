@@ -6,7 +6,7 @@ using Rush_Hour.Models;
 
 namespace Rush_Hour.Solver
 {
-    public class MapTree
+    public class MapNode
     {
         public int Key { get; set; }
         public int ParentKey { get; set; }
@@ -15,7 +15,7 @@ namespace Rush_Hour.Solver
         public bool DeadEnd { get; set; }
         public int Ply { get; set; }
 
-        public MapTree(int key, int parentKey, string command, bool deadEnd, int ply) 
+        public MapNode(int key, int parentKey, string command, bool deadEnd, int ply) 
         {
             //tuti nem ref???
             Key = key;
@@ -25,7 +25,7 @@ namespace Rush_Hour.Solver
             Ply = ply;
         }
 
-        public MapTree(int key, int parentKey, Dictionary<int, MapObject> map, string command, int ply)
+        public MapNode(int key, int parentKey, Dictionary<int, MapObject> map, string command, int ply)
         {
             foreach (var m in map)
             {
@@ -45,7 +45,7 @@ namespace Rush_Hour.Solver
             Ply = ply;
         }
 
-        public MapTree(Dictionary<int, MapObject> map)
+        public MapNode(Dictionary<int, MapObject> map)
         {
             foreach (var m in map)
             {
@@ -61,9 +61,9 @@ namespace Rush_Hour.Solver
             Ply = 0;
         }
 
-        public MapTree Clone()
+        public MapNode Clone()
         {
-            var clone = new MapTree(Key, ParentKey, Command, DeadEnd, Ply);
+            var clone = new MapNode(Key, ParentKey, Command, DeadEnd, Ply);
             foreach (var mapTile in Map)
             {
                 var key = mapTile.Key;

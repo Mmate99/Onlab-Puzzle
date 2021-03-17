@@ -19,17 +19,10 @@ namespace Rush_Hour.Models
                                                   { 'j', DirectionEnum.Right },
                                                   { 'b', DirectionEnum.Left }};
 
-        public Dictionary<int, MapObject> ExcecuteCommand(MapTree mapTree, string cmd)   //TODO: map objektet átvenni, hogy azon végezzük el a műveletet
+        public Dictionary<int, MapObject> ExcecuteCommand(MapNode mapTree, string cmd)
         {
             var mapTreeClone = mapTree.Clone();
             var ret = mapTreeClone.Map;
-            
-
-            //var ret = new Dictionary<int, MapObject>();
-            //foreach (var t in map)
-            //{
-            //    ret.Add(t.Key, t.Value);
-            //}
 
             int tempV = 0;
 
@@ -58,25 +51,6 @@ namespace Rush_Hour.Models
 
                 IsGameWon();
             }
-
-            //foreach (var t in Map)
-            //{
-            //    ret.Add(t.Key, t.Value);
-            //}
-
-
-            //lefut akkor is ha nem mozdulunk abba az irányba
-            //for (int i = 0; i < tempV; i++)
-            //{
-            //    var minPos = vehicle.Positions.Min();
-            //    var maxPos = vehicle.Positions.Max();
-
-            //    if (IsNeighbourFree((DirectionEnum)((int)dir * (-1)), minPos, maxPos))
-            //    {
-            //        vehicle.MoveToDirection((DirectionEnum)((int)dir * (-1)));
-            //        UpdateMap((DirectionEnum)((int)dir * (-1)), minPos, maxPos);    //ezek nem biztos hogy kellenek (alsó tuti nem)
-            //    }
-            //}
 
             return ret;
         }

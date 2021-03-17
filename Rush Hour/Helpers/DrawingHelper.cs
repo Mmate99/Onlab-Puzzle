@@ -25,7 +25,7 @@ namespace Rush_Hour.Helpers
             }
         }
 
-        public void Draw(MapTree mapTree)
+        public void Draw(MapNode mapTree)
         {
 
             var map = mapTree.Map;

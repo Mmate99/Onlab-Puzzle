@@ -8,42 +8,12 @@ using Rush_Hour.Helpers;
 
 namespace Rush_Hour.Solver
 {
-    /**************************************************************************
-     * TODO:
-     *
-     * State:                           Next state:         Megvalósítva:
-     * 1: Get next map from list        -> 2                Sztem igen
-     * 2: Get vehicles from map         -> 3                Sztem igen
-     * 3: Get possible commands
-     *      if exists next command      -> 4                Nem
-     *      if not                      -> 1                Nem
-     * 4: Execute command               -> 5
-     * 5: Check new map
-     *      if map already exists       -> 6                Nem
-     *      if not                      -> 7                Nem
-     * 6: Delete map and parents        -> 3                Nem
-     * 7: Store map in list
-     *      if GameStillOn == false     -> FINISH           Nem, de talán easy :D
-     *      if GameStillOn == true      -> 3                Nem
-     *
-     * We need to check the solvability somewhere           Meghívni!
-     *
-     * Megvalósítás egy állapotgép(state machine) formájában működhet?
-     * Enumokkal, meg saját függvényekkel...
-     *
-     * 4 & 5 lehetnek u.abban az állapotban
-     *
-     * Az Execute Command csak annyi lenne, hogy game.ExecuteCommand(string)
-     * Ehhez viszont az kell, hogy game.Map = ...
-     * 
-     * Lehet jobb lenne MapTree objektumokkal dolgozni, majd meglátjuk.
-     ***************************************************************************/
-
     class RushHourSolver
     {
         public Game RushGame { get; set; }
-        private List<MapTree> mapTree = new List<MapTree>();
+        private List<MapNode> mapTree = new List<MapNode>();
         private List<Vehicle> currentVehicleList = new List<Vehicle>();
+        private DrawingHelper dh = new DrawingHelper();
 
         private Dictionary<char, DirectionEnum> enums =
             new Dictionary<char, DirectionEnum> { { 'f', DirectionEnum.Up },
@@ -55,13 +25,11 @@ namespace Rush_Hour.Solver
         public RushHourSolver(Game game)
         {
             this.RushGame = game;
-            mapTree.Add(new MapTree(game.Map));
+            mapTree.Add(new MapNode(game.Map));
         }
 
         public void SolveGame()
         {
-            DrawingHelper dh = new DrawingHelper();
-
             var currentMap = mapTree[0];
             GetVehicles(currentMap.Map);
             var commands = GetCommands(currentMap.Map, currentVehicleList);
@@ -76,7 +44,7 @@ namespace Rush_Hour.Solver
 
             }
 
-            while (GameContinues() && IsSolvable())
+            while (true)
             {
                 dh.Draw(currentMap);
                 currentMap = GetNextMap(currentMap);
@@ -89,7 +57,6 @@ namespace Rush_Hour.Solver
                 GetVehicles(currentMap.Map);
                 commands = GetCommands(currentMap.Map, currentVehicleList);
                 tempCommands.AddRange(commands);
-                bool hasValidChildren = false;
 
                 foreach (var cmd in commands)
                 {
@@ -97,42 +64,40 @@ namespace Rush_Hour.Solver
                     if (ContainsMap(newMap) == false)
                     {
                         StoreMap(currentMap, newMap, cmd);
-                        hasValidChildren = true;
-                    }
-                }
-
-                if (!hasValidChildren)
-                    SetDeadEnd(currentMap);
-
-                if (IsGameWon(currentMap.Map)) 
-                {
-                    Console.WriteLine("-------------------------------------------------------------------------------------------------");
-                    var currMap = currentMap;
-                    MapTree parent = null;
-                    var moves = new List<MapTree>();
-                    while (true)
-                    {
-                        var parentKey = currMap.ParentKey;
-                        parent = mapTree.FirstOrDefault(mt => mt.Key == parentKey);
-                        moves.Add(currMap);
-                        currMap = parent;
-
-                        if (currMap.ParentKey == -1)
-                        {
-                            moves.Add(currMap);
-                            moves.Reverse();
-
-                            foreach(var map in moves)
-                            {
-                                dh.Draw(map);
-                            }
-                        }
+                        if (IsGameWon(newMap))
+                            End();
                     }
                 }
             }
         }
 
-        private MapTree GetNextMap(MapTree currentMap)
+        private void End()
+        {
+            Console.WriteLine("-------------------------------------------------------------------------------------------------");
+            var currMap = mapTree.Last();
+            MapNode parent = null;
+            var moves = new List<MapNode>();
+            while (true)
+            {
+                var parentKey = currMap.ParentKey;
+                parent = mapTree.FirstOrDefault(mt => mt.Key == parentKey);
+                moves.Add(currMap);
+                currMap = parent;
+
+                if (currMap.ParentKey == -1)
+                {
+                    moves.Add(currMap);
+                    moves.Reverse();
+
+                    foreach (var map in moves)
+                    {
+                        dh.Draw(map);
+                    }
+                }
+            }
+        }
+
+        private MapNode GetNextMap(MapNode currentMap)
         {
             // TODO: Implement
             // Kikeresi a következő mapet a listából
@@ -145,8 +110,6 @@ namespace Rush_Hour.Solver
             // Lokális vált.
             // Nem akarjuk, hogy a kocsik régi helyzete benn legyen
             currentVehicleList.Clear();
-
-            var runUntilFalse = true;
             var increment = 97;
 
             while (true) // runUntilFalse)
@@ -223,16 +186,17 @@ namespace Rush_Hour.Solver
             // De jó a bool is
             // 1 - már létezik // 0 - nem létezik még
 
+            var currentMapString = MapToStringConverter(currentMap);
             bool matchingExists = false;
 
             foreach (var node in mapTree)
             {
                 bool changeMatchingValuable = true;
-                foreach(var mapTile in currentMap)
+
+                var nodeString = MapToStringConverter(node.Map);
+                if (!currentMapString.Equals(nodeString))
                 {
-                    var key = mapTile.Key;
-                    if (mapTile.Value.GetType() != node.Map.GetValueOrDefault(key).GetType())
-                        changeMatchingValuable = false;
+                    changeMatchingValuable = false;
                 }
 
                 if (changeMatchingValuable)
@@ -242,26 +206,7 @@ namespace Rush_Hour.Solver
             return matchingExists;
         }
 
-        private void SetDeadEnd(MapTree currentMap)
-        {
-            // TODO: Implement
-            // Kitörli a haszontalan mapet és a szüleit a listából
-            // A szüleit azért, mert ha zsákutca, akkor zsákutca
-
-            currentMap.DeadEnd = true;
-            var parent = currentMap;
-
-            while (!HasChildren(parent))
-            {
-                parent = mapTree.Find(maps => maps.Key == parent.ParentKey);
-                if (parent != null)
-                    parent.DeadEnd = true;
-                if (parent is null)
-                    break;
-            }
-        }
-
-        private void StoreMap(MapTree currentMap, Dictionary<int, MapObject> newMap, string cmd)
+        private void StoreMap(MapNode currentMap, Dictionary<int, MapObject> newMap, string cmd)
         {
             // TODO: Implement
             // Berakja a lista végére az új mapet
@@ -270,40 +215,7 @@ namespace Rush_Hour.Solver
             var parentKey = currentMap.Key;
             var ply = currentMap.Ply + 1;
 
-            mapTree.Add(new MapTree(uniqueKey, parentKey, newMap, cmd, ply));
-        }
-
-        private bool GameContinues()
-        {
-            // TODO: Implement
-            // Megmondja, hogy vége van-e vagy sem
-            return true;
-        }
-
-        private bool IsSolvable()
-        {
-            // Megomndja, hogy megoldható-e vagy sem
-            // Kb úgy kellene, hogy ha a mapek listája üres lesz,
-            // akkor nem megoldható a puzzle
-
-            // NEM JÓ
-            return mapTree.Any();
-        }
-
-        private bool HasChildren(MapTree currentMap)
-        {
-            // Megnézi, hogy egy map-nek vannak-e gyerekei
-            // és hogy azok zsákutcák-e
-            var hasChildren = false;
-
-            var children = mapTree.FindAll(map => map.ParentKey == currentMap.Key);
-
-            if (children.Count > 0)
-            {
-                children.ForEach(child => { hasChildren = hasChildren | !child.DeadEnd; });
-            }
-
-            return hasChildren;
+            mapTree.Add(new MapNode(uniqueKey, parentKey, newMap, cmd, ply));
         }
 
         private bool IsGameWon(Dictionary<int, MapObject> map)
@@ -319,6 +231,18 @@ namespace Rush_Hour.Solver
 
                 pos--;
             }
+        }
+
+        private string MapToStringConverter(Dictionary<int, MapObject> map)
+        {
+            var ret = "";
+
+            foreach(var tile in map)
+            {
+                ret += tile.Value.Code;
+            }
+
+            return ret;
         }
     }
 }
