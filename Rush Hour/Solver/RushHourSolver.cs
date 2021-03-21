@@ -1,7 +1,6 @@
 ﻿using Rush_Hour.Models;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Linq;
 using Rush_Hour.Enums;
 using Rush_Hour.Helpers;
@@ -20,7 +19,6 @@ namespace Rush_Hour.Solver
                                                   { 'l', DirectionEnum.Down },
                                                   { 'j', DirectionEnum.Right },
                                                   { 'b', DirectionEnum.Left }};
-        private List<string> tempCommands = new List<string>();
 
         public RushHourSolver(Game game)
         {
@@ -33,7 +31,6 @@ namespace Rush_Hour.Solver
             var currentMap = mapTree[0];
             GetVehicles(currentMap.Map);
             var commands = GetCommands(currentMap.Map, currentVehicleList);
-            tempCommands.AddRange(commands);
             foreach(var cmd in commands)
             {
                 var newMap = RushGame.ExcecuteCommand(currentMap, cmd);
@@ -56,7 +53,6 @@ namespace Rush_Hour.Solver
 
                 GetVehicles(currentMap.Map);
                 commands = GetCommands(currentMap.Map, currentVehicleList);
-                tempCommands.AddRange(commands);
 
                 foreach (var cmd in commands)
                 {
@@ -97,11 +93,9 @@ namespace Rush_Hour.Solver
             }
         }
 
+        // Kikeresi a következő mapet a listából
         private MapNode GetNextMap(MapNode currentMap)
         {
-            // TODO: Implement
-            // Kikeresi a következő mapet a listából
-
             return mapTree.FirstOrDefault(maps => maps.Key == (currentMap.Key + 1));
         }
 
@@ -112,14 +106,14 @@ namespace Rush_Hour.Solver
             currentVehicleList.Clear();
             var increment = 97;
 
-            while (true) // runUntilFalse)
+            while (true)
             {
                 // teszt mert nem biztos, h kell a "?"
                 var vehicle = currentMap.Values.Where(v => v.Code == (char)increment)?
                                                          .Cast<Vehicle>()
                                                          .FirstOrDefault();
 
-                if (vehicle == null) break; // runUntilFalse = false;
+                if (vehicle == null) break;
 
                 // Ha üres lesz a lista, akkor nagyon nagy gond van
                 currentVehicleList.Add(vehicle);
@@ -153,7 +147,7 @@ namespace Rush_Hour.Solver
                     {
                         if (IsWayClear(currentMap, vehicle, dir, i))
                         {
-                            string singleCmd = Char.ToString(vehicle.Code) + " " + dir + " " + $"{ i }"; // a j 1
+                            string singleCmd = Char.ToString(vehicle.Code) + " " + dir + " " + $"{ i }";
                             cmds.Add(singleCmd);
                         }
                     }
@@ -193,7 +187,7 @@ namespace Rush_Hour.Solver
             {
                 bool changeMatchingValuable = true;
 
-                var nodeString = MapToStringConverter(node.Map);
+                var nodeString = node.MapString;
                 if (!currentMapString.Equals(nodeString))
                 {
                     changeMatchingValuable = false;
@@ -214,8 +208,9 @@ namespace Rush_Hour.Solver
             var uniqueKey = mapTree.Last().Key + 1;
             var parentKey = currentMap.Key;
             var ply = currentMap.Ply + 1;
+            var mapString = MapToStringConverter(newMap);
 
-            mapTree.Add(new MapNode(uniqueKey, parentKey, newMap, cmd, ply));
+            mapTree.Add(new MapNode(uniqueKey, parentKey, newMap, cmd, ply, mapString));
         }
 
         private bool IsGameWon(Dictionary<int, MapObject> map)

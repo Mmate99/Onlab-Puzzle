@@ -14,8 +14,9 @@ namespace Rush_Hour.Solver
         public string Command { get; set; }
         public bool DeadEnd { get; set; }
         public int Ply { get; set; }
+        public string MapString { get; set; }
 
-        public MapNode(int key, int parentKey, string command, bool deadEnd, int ply) 
+        public MapNode(int key, int parentKey, string command, bool deadEnd, int ply, string mapString) 
         {
             //tuti nem ref???
             Key = key;
@@ -23,9 +24,10 @@ namespace Rush_Hour.Solver
             Command = command;
             DeadEnd = deadEnd;
             Ply = ply;
+            MapString = mapString;
         }
 
-        public MapNode(int key, int parentKey, Dictionary<int, MapObject> map, string command, int ply)
+        public MapNode(int key, int parentKey, Dictionary<int, MapObject> map, string command, int ply, string mapString)
         {
             foreach (var m in map)
             {
@@ -33,16 +35,17 @@ namespace Rush_Hour.Solver
             }
 
             // Ez csak növekvő és egyedi!
-            this.Key = key;
+            Key = key;
             // Ez mindig a szülőé
-            this.ParentKey = parentKey;
+            ParentKey = parentKey;
             // Ez a tényleges map
             //this.Map = map;
             // Ez az a command, amelyikkel az adott map-et létrehozzuk
-            this.Command = command;
+            Command = command;
             // Amikor létrehozzuk, még nem tudjuk, hogy zsákutca-e
-            this.DeadEnd = false;
+            DeadEnd = false;
             Ply = ply;
+            MapString = mapString;
         }
 
         public MapNode(Dictionary<int, MapObject> map)
@@ -63,7 +66,7 @@ namespace Rush_Hour.Solver
 
         public MapNode Clone()
         {
-            var clone = new MapNode(Key, ParentKey, Command, DeadEnd, Ply);
+            var clone = new MapNode(Key, ParentKey, Command, DeadEnd, Ply, MapString);
             foreach (var mapTile in Map)
             {
                 var key = mapTile.Key;
