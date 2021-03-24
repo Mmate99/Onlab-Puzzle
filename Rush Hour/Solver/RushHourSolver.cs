@@ -13,6 +13,7 @@ namespace Rush_Hour.Solver
         private List<MapNode> mapTree = new List<MapNode>();
         private List<Vehicle> currentVehicleList = new List<Vehicle>();
         private DrawingHelper dh = new DrawingHelper();
+        private bool isNotSolved = true;
 
         private Dictionary<char, DirectionEnum> enums =
             new Dictionary<char, DirectionEnum> { { 'f', DirectionEnum.Up },
@@ -41,14 +42,15 @@ namespace Rush_Hour.Solver
 
             }
 
-            while (true)
+            while (isNotSolved)
             {
                 dh.Draw(currentMap);
                 currentMap = GetNextMap(currentMap);
 
                 if (currentMap == null)
                 {
-                    var asd  = "asd";
+                    Console.WriteLine("All states found!");
+                    break;
                 }
 
                 GetVehicles(currentMap.Map);
@@ -73,7 +75,8 @@ namespace Rush_Hour.Solver
             var currMap = mapTree.Last();
             MapNode parent = null;
             var moves = new List<MapNode>();
-            while (true)
+            var drawSolution = true;
+            while (drawSolution)
             {
                 var parentKey = currMap.ParentKey;
                 parent = mapTree.FirstOrDefault(mt => mt.Key == parentKey);
@@ -89,6 +92,9 @@ namespace Rush_Hour.Solver
                     {
                         dh.Draw(map);
                     }
+
+                    drawSolution = false;
+                    isNotSolved = false;
                 }
             }
         }
