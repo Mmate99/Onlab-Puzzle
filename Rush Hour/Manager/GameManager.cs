@@ -321,7 +321,7 @@ namespace Rush_Hour.Manager
         {
             IEnumerable<MapNode> nodes = mapTree.Where(node => node.Ply == requiredSteps);
             Random random = new Random();
-            var chosenMap = random.Next(0, nodes.Count());
+            var chosenMap = random.Next(0, nodes.Count() + 1);
 
             return nodes.ElementAt(chosenMap).Map;
         }
