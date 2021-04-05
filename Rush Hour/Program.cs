@@ -14,14 +14,14 @@ namespace Rush_Hour
         public static Game game = new Game();
         static void Main(string[] args)
         {
-            Console.WriteLine("Milyen módban szeretné elindítani az alkalmazást? Solver (S) vagy Game (G)?");
+            Console.WriteLine("Milyen módban szeretné elindítani az alkalmazást? Solver (S) vagy Generator (G) vagy kézi játék (M)?");
             var gameType = Console.ReadLine();
 
             DrawingHelper dh = new DrawingHelper();
 
             switch (gameType)
             {
-                case "G":
+                case "M":
 
                     dh.Draw(game);
 
@@ -33,6 +33,10 @@ namespace Rush_Hour
                     }
 
                     Console.WriteLine("You Won!");
+                    break;
+
+                case "G":
+                    // Létrehozunk véletlenül egy játékot, aztán meg "megoldjuk visszafelé"
                     break;
 
                 case "S":

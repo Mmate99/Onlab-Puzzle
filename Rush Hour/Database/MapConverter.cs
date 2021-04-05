@@ -7,7 +7,7 @@ namespace Rush_Hour.Database
 {
     public static class MapConverter
     {
-        public static List<String[]> ConvertMapFromDatabase(int line)
+        public static List<string[]> ConvertMapFromDatabase(int line)
         {
             List<string[]> mapWithData = new List<string[]>();
 

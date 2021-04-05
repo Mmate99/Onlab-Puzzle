@@ -39,7 +39,6 @@ namespace Rush_Hour.Solver
                 {
                     StoreMap(currentMap, newMap, cmd);
                 }
-
             }
 
             while (isNotSolved)
@@ -67,6 +66,65 @@ namespace Rush_Hour.Solver
                     }
                 }
             }
+        }
+
+        public string[] MakeGame(int requiredSteps)
+        {
+            var currentMap = mapTree[0];
+            string mapString;
+
+            if (requiredSteps == 1)
+            {
+                Console.WriteLine("Number of steps cannot be 1!");
+                // Konvertáljuk a mapTree[0]-t egy string tömbbé,
+                // és azt adjuk vissza.
+                mapString = MapToStringConverter(currentMap.Map);
+                
+                return MapStringToArray(mapString);
+            }
+
+            GetVehicles(currentMap.Map);
+            var commands = GetCommands(currentMap.Map, currentVehicleList);
+            // Itt van az első lépés
+            foreach (var cmd in commands)
+            {
+                var newMap = RushGame.ExcecuteCommand(currentMap, cmd);
+                if (ContainsMap(newMap) == false)
+                {
+                    StoreMap(currentMap, newMap, cmd);
+                }
+            }
+
+            for (int step = 2; step <= requiredSteps; step++)
+            {
+                dh.Draw(currentMap);
+                currentMap = GetNextMap(currentMap);
+
+                if (currentMap == null)
+                {
+                    requiredSteps = step - 1;
+                    Console.WriteLine("Cannot reach the amount of required steps.");
+                    break;
+                }
+
+                GetVehicles(currentMap.Map);
+                commands = GetCommands(currentMap.Map, currentVehicleList);
+
+                foreach (var cmd in commands)
+                {
+                    var newMap = RushGame.ExcecuteCommand(currentMap, cmd);
+                    if (ContainsMap(newMap) == false)
+                    {
+                        StoreMap(currentMap, newMap, cmd);
+                    }
+                }
+            }
+
+            // Ki kell választani egy map-et azok közül, ahol a requiredSteps == currentMap.Ply teljesül
+            var chosenMap = getRandomMapWithRequiredSteps(requiredSteps);
+            mapString = MapToStringConverter(chosenMap);
+
+            return MapStringToArray(mapString);
         }
 
         private void End()
@@ -130,7 +188,6 @@ namespace Rush_Hour.Solver
 
         private List<string> GetCommands(Dictionary<int, MapObject> currentMap, List<Vehicle> vehicles)
         {
-            // TODO: Implement
             // Megadja az összes parancsot, amiből elérhetjük a következő állapotokat
             // Ha üres listát dob vissza, akkor egyértelműen nem megoldható
             // Ez elég nehéz...
@@ -180,7 +237,6 @@ namespace Rush_Hour.Solver
 
         private bool ContainsMap(Dictionary<int, MapObject> currentMap)
         {
-            // TODO: Implement
             // Megmondja, hogy az új map létezik-e
             // Azért int, hogy állapotgéppel meg lehessen oldani
             // De jó a bool is
@@ -208,7 +264,6 @@ namespace Rush_Hour.Solver
 
         private void StoreMap(MapNode currentMap, Dictionary<int, MapObject> newMap, string cmd)
         {
-            // TODO: Implement
             // Berakja a lista végére az új mapet
 
             var uniqueKey = mapTree.Last().Key + 1;
@@ -232,6 +287,27 @@ namespace Rush_Hour.Solver
 
                 pos--;
             }
+        }
+
+        private Dictionary<int, MapObject> getRandomMapWithRequiredSteps(int requiredSteps)
+        {
+            IEnumerable<MapNode> nodes = mapTree.Where(node => node.Ply == requiredSteps);
+            Random random = new Random();
+            var chosenMap = random.Next(0, nodes.Count());
+
+            return nodes.ElementAt(chosenMap).Map;
+        }
+
+        private string[] MapStringToArray(string map)
+        {
+            string[] mapArray = new string[8];
+
+            for (int i = 0; i < mapArray.Length - 1; i++)
+            {
+                mapArray[i] = map.Substring(i * 8, 8);
+            }
+
+            return mapArray;
         }
 
         private string MapToStringConverter(Dictionary<int, MapObject> map)
