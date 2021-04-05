@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Rush_Hour.Models;
 
-namespace Rush_Hour.Solver
+namespace Rush_Hour.Models
 {
     public class MapNode
     {

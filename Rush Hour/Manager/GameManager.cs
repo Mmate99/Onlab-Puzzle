@@ -5,9 +5,9 @@ using System.Linq;
 using Rush_Hour.Enums;
 using Rush_Hour.Helpers;
 
-namespace Rush_Hour.Solver
+namespace Rush_Hour.Manager
 {
-    class RushHourSolver
+    class GameManager
     {
         public Game RushGame { get; set; }
         private List<MapNode> mapTree = new List<MapNode>();
@@ -21,9 +21,9 @@ namespace Rush_Hour.Solver
                                                   { 'j', DirectionEnum.Right },
                                                   { 'b', DirectionEnum.Left }};
 
-        public RushHourSolver(Game game)
+        public GameManager(Game game)
         {
-            this.RushGame = game;
+            RushGame = game;
             mapTree.Add(new MapNode(game.Map));
         }
 
@@ -95,15 +95,41 @@ namespace Rush_Hour.Solver
                 }
             }
 
-            for (int step = 2; step <= requiredSteps; step++)
+            //for (int step = 2; step <= requiredSteps; step++)
+            //{
+            //    dh.Draw(currentMap);
+            //    currentMap = GetNextMap(currentMap);
+
+            //    if (currentMap == null)
+            //    {
+            //        requiredSteps = step - 1;
+            //        Console.WriteLine("Cannot reach the amount of required steps.");
+            //        break;
+            //    }
+
+            //    GetVehicles(currentMap.Map);
+            //    commands = GetCommands(currentMap.Map, currentVehicleList);
+
+            //    foreach (var cmd in commands)
+            //    {
+            //        var newMap = RushGame.ExcecuteCommand(currentMap, cmd);
+            //        if (ContainsMap(newMap) == false)
+            //        {
+            //            StoreMap(currentMap, newMap, cmd);
+            //        }
+            //    }
+            //}
+
+            int depth = 1;
+            while (currentMap.Ply <= requiredSteps)
             {
                 dh.Draw(currentMap);
                 currentMap = GetNextMap(currentMap);
 
                 if (currentMap == null)
                 {
-                    requiredSteps = step - 1;
-                    Console.WriteLine("Cannot reach the amount of required steps.");
+                    requiredSteps = depth;
+                    Console.WriteLine($"Cannot reach the amount of required steps, only {depth}");
                     break;
                 }
 
@@ -118,6 +144,8 @@ namespace Rush_Hour.Solver
                         StoreMap(currentMap, newMap, cmd);
                     }
                 }
+
+                depth++;
             }
 
             // Ki kell választani egy map-et azok közül, ahol a requiredSteps == currentMap.Ply teljesül
@@ -302,7 +330,7 @@ namespace Rush_Hour.Solver
         {
             string[] mapArray = new string[8];
 
-            for (int i = 0; i < mapArray.Length - 1; i++)
+            for (int i = 0; i < mapArray.Length; i++)
             {
                 mapArray[i] = map.Substring(i * 8, 8);
             }

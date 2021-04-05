@@ -1,11 +1,11 @@
 ﻿using Rush_Hour.Helpers;
 using Rush_Hour.Models;
-using Rush_Hour.Solver;
+using Rush_Hour.Manager;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Rush_Hour.Database;
+using System.IO;
 
 namespace Rush_Hour
 {
@@ -37,25 +37,45 @@ namespace Rush_Hour
 
                 case "G":
                     // Létrehozunk véletlenül egy játékot, aztán meg "megoldjuk visszafelé"
+
+                    var lines2 = File.ReadAllLines("map.txt");
+                    game.MapWidth = lines2[0].Length;
+                    game.MapHeight = lines2.Length;
+
+                    InitializeGame(lines2);
+
+                    Console.WriteLine("Hány lépésből álljon a puzzle?");
+                    var requiredSteps = Int32.Parse(Console.ReadLine());
+
+                    var gm = new GameManager(game);
+                    var mapArray = gm.MakeGame(requiredSteps);
+
+                    Console.WriteLine("A generált pálya:");
+
+                    foreach(var mapLine in mapArray)
+                    {
+                        Console.WriteLine(mapLine);
+                    }
+
                     break;
 
                 case "S":
                 default:
-                    //var lines = File.ReadAllLines("map.txt");
+                    var lines = File.ReadAllLines("map.txt");
 
-                    Console.WriteLine("Válasszon egy puzzle-t 0 és 2'577'411 között!");
-                    string numOfGame = Console.ReadLine();
+                    //Console.WriteLine("Válasszon egy puzzle-t 0 és 2'577'411 között!");
+                    //string numOfGame = Console.ReadLine();
 
-                    List<string[]> mapWithData = MapConverter.ConvertMapFromDatabase(Int32.Parse(numOfGame));
+                    //List<string[]> mapWithData = MapConverter.ConvertMapFromDatabase(Int32.Parse(numOfGame));
 
-                    var lines = mapWithData[0];
+                    //var lines = mapWithData[0];
 
                     game.MapWidth = lines[0].Length;
                     game.MapHeight = lines.Length;
 
                     InitializeGame(lines);
 
-                    var rh = new RushHourSolver(game);
+                    var rh = new GameManager(game);
                     rh.SolveGame();
                     Console.WriteLine("Successfully solved!");
                     break;

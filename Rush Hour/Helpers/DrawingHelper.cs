@@ -1,8 +1,5 @@
 ﻿using Rush_Hour.Models;
-using Rush_Hour.Solver;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Rush_Hour.Helpers
 {
