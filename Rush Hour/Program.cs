@@ -37,18 +37,31 @@ namespace Rush_Hour
 
                 case "G":
                     // Létrehozunk véletlenül egy játékot, aztán meg "megoldjuk visszafelé"
+                    var mapGenerated = false;
+                    var mapArray = new string[1];
 
-                    var lines2 = File.ReadAllLines("map.txt");
-                    game.MapWidth = lines2[0].Length;
-                    game.MapHeight = lines2.Length;
+                    while (!mapGenerated)
+                    {
+                        var mg = new RandomMapGenerator();
+                        var map = mg.GenerateMap(8);
 
-                    InitializeGame(lines2);
+                        //var lines2 = File.ReadAllLines("map.txt");
+                        game.MapWidth = map[0].Length;
+                        game.MapHeight = map.Length;
 
-                    Console.WriteLine("Hány lépésből álljon a puzzle?");
-                    var requiredSteps = Int32.Parse(Console.ReadLine());
+                        InitializeGame(map);
 
-                    var gm = new GameManager(game);
-                    var mapArray = gm.MakeGame(requiredSteps);
+                        Console.WriteLine("Hány lépésből álljon a puzzle?");
+                        var requiredSteps = Int32.Parse(Console.ReadLine());
+
+                        var gm = new GameManager(game);
+                        mapArray = gm.MakeGame(requiredSteps);
+
+                        if (mapArray != null)
+                            mapGenerated = true;
+
+                        game.Map = new Dictionary<int, MapObject>();
+                    }
 
                     Console.WriteLine("A generált pálya:");
 

@@ -83,44 +83,41 @@ namespace Rush_Hour.Manager
                 return MapStringToArray(mapString);
             }
 
-            GetVehicles(currentMap.Map);
-            var commands = GetCommands(currentMap.Map, currentVehicleList);
-            // Itt van az első lépés
-            foreach (var cmd in commands)
+            var commands = new List<string>();
+            var currentPly = 0;
+
+            while (true)
             {
-                var newMap = RushGame.ExcecuteCommand(currentMap, cmd);
-                if (ContainsMap(newMap) == false)
+                GetVehicles(currentMap.Map);
+                commands = GetCommands(currentMap.Map, currentVehicleList);
+                // Itt van az első lépés
+                foreach (var cmd in commands)
                 {
-                    StoreMap(currentMap, newMap, cmd);
+                    var newMap = RushGame.ExcecuteCommand(currentMap, cmd);
+                    if (ContainsMap(newMap) == false)
+                    {
+                        StoreMap(currentMap, newMap, cmd);
+                    }
                 }
+
+                if (GetNextMap(currentMap) == null)
+                    return null;
+
+                var nextply = GetNextMap(currentMap).Ply;
+                if (currentPly != nextply)
+                {
+                    if (PlyUnsolved(currentPly))
+                    {
+                        currentPly++;
+                        requiredSteps += currentPly;
+                        break;
+                    }
+                    currentPly++;
+                }
+
+                currentMap = GetNextMap(currentMap);
             }
-
-            //for (int step = 2; step <= requiredSteps; step++)
-            //{
-            //    dh.Draw(currentMap);
-            //    currentMap = GetNextMap(currentMap);
-
-            //    if (currentMap == null)
-            //    {
-            //        requiredSteps = step - 1;
-            //        Console.WriteLine("Cannot reach the amount of required steps.");
-            //        break;
-            //    }
-
-            //    GetVehicles(currentMap.Map);
-            //    commands = GetCommands(currentMap.Map, currentVehicleList);
-
-            //    foreach (var cmd in commands)
-            //    {
-            //        var newMap = RushGame.ExcecuteCommand(currentMap, cmd);
-            //        if (ContainsMap(newMap) == false)
-            //        {
-            //            StoreMap(currentMap, newMap, cmd);
-            //        }
-            //    }
-            //}
-
-            int depth = 1;
+            
             while (currentMap.Ply <= requiredSteps)
             {
                 dh.Draw(currentMap);
@@ -128,10 +125,13 @@ namespace Rush_Hour.Manager
 
                 if (currentMap == null)
                 {
-                    requiredSteps = depth;
-                    Console.WriteLine($"Cannot reach the amount of required steps, only {depth}");
+                    //requiredSteps = currentPly;
+                    Console.WriteLine($"Cannot reach the amount of required steps, only {currentPly - requiredSteps}");
                     break;
                 }
+
+                if (currentPly != currentMap.Ply)
+                    currentPly = currentMap.Ply;
 
                 GetVehicles(currentMap.Map);
                 commands = GetCommands(currentMap.Map, currentVehicleList);
@@ -144,15 +144,28 @@ namespace Rush_Hour.Manager
                         StoreMap(currentMap, newMap, cmd);
                     }
                 }
-
-                depth++;
             }
+
+            //TODO: Ha nem tudunk eljutni a reqsteps-ig akkor megbaszódik
 
             // Ki kell választani egy map-et azok közül, ahol a requiredSteps == currentMap.Ply teljesül
             var chosenMap = getRandomMapWithRequiredSteps(requiredSteps);
             mapString = MapToStringConverter(chosenMap);
 
             return MapStringToArray(mapString);
+        }
+
+        private bool PlyUnsolved(int ply)
+        {
+            var mapsToCheck = mapTree.Where(mn => mn.Ply == ply)
+                .ToList();
+
+            foreach(var mapNode in mapsToCheck)
+            {
+                if (IsGameWon(mapNode.Map))
+                    return false;
+            }
+            return true;
         }
 
         private void End()
