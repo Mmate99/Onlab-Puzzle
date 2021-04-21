@@ -43,7 +43,7 @@ namespace Rush_Hour
                     while (!mapGenerated)
                     {
                         var mg = new RandomMapGenerator();
-                        var map = mg.GenerateMap(8);
+                        var map = File.ReadAllLines("map.txt"); //mg.GenerateMap(8);
 
                         //var lines2 = File.ReadAllLines("map.txt");
                         game.MapWidth = map[0].Length;

@@ -12,22 +12,21 @@ namespace Rush_Hour.Models
         public int ParentKey { get; set; }
         public Dictionary<int, MapObject> Map { get; set; } = new Dictionary<int, MapObject>();
         public string Command { get; set; }
-        public bool DeadEnd { get; set; }
+        public int DistanceFromLastSolved { get; set; }
         public int Ply { get; set; }
         public string MapString { get; set; }
 
-        public MapNode(int key, int parentKey, string command, bool deadEnd, int ply, string mapString) 
+        public MapNode(int key, int parentKey, string command, int ply, string mapString) 
         {
             //tuti nem ref???
             Key = key;
             ParentKey = parentKey;
             Command = command;
-            DeadEnd = deadEnd;
             Ply = ply;
             MapString = mapString;
         }
 
-        public MapNode(int key, int parentKey, Dictionary<int, MapObject> map, string command, int ply, string mapString)
+        public MapNode(int key, int parentKey, Dictionary<int, MapObject> map, string command, int ply, string mapString, int distFromLastSolved)
         {
             foreach (var m in map)
             {
@@ -42,10 +41,9 @@ namespace Rush_Hour.Models
             //this.Map = map;
             // Ez az a command, amelyikkel az adott map-et létrehozzuk
             Command = command;
-            // Amikor létrehozzuk, még nem tudjuk, hogy zsákutca-e
-            DeadEnd = false;
             Ply = ply;
             MapString = mapString;
+            DistanceFromLastSolved = distFromLastSolved;
         }
 
         public MapNode(Dictionary<int, MapObject> map)
@@ -60,13 +58,12 @@ namespace Rush_Hour.Models
             this.ParentKey = -1;
             // this.Map = map;
             this.Command = "";
-            this.DeadEnd = false;
             Ply = 0;
         }
 
         public MapNode Clone()
         {
-            var clone = new MapNode(Key, ParentKey, Command, DeadEnd, Ply, MapString);
+            var clone = new MapNode(Key, ParentKey, Command, Ply, MapString);
             foreach (var mapTile in Map)
             {
                 var key = mapTile.Key;

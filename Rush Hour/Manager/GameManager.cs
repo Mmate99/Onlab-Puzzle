@@ -35,7 +35,7 @@ namespace Rush_Hour.Manager
             foreach(var cmd in commands)
             {
                 var newMap = RushGame.ExcecuteCommand(currentMap, cmd);
-                if (ContainsMap(newMap) == false)
+                if (ContainsMap(newMap, out var _) == false)
                 {
                     StoreMap(currentMap, newMap, cmd);
                 }
@@ -58,7 +58,7 @@ namespace Rush_Hour.Manager
                 foreach (var cmd in commands)
                 {
                     var newMap = RushGame.ExcecuteCommand(currentMap, cmd);
-                    if (ContainsMap(newMap) == false)
+                    if (ContainsMap(newMap, out var _) == false)
                     {
                         StoreMap(currentMap, newMap, cmd);
                         if (IsGameWon(newMap))
@@ -71,6 +71,57 @@ namespace Rush_Hour.Manager
         public string[] MakeGame(int requiredSteps)
         {
             var currentMap = mapTree[0];
+            currentMap.DistanceFromLastSolved = 0;  //A gyökérben biztos, hogy megoldott node lesz.
+            currentMap.MapString = MapToStringConverter(currentMap.Map);
+            
+            while (currentMap?.DistanceFromLastSolved < requiredSteps)
+            {
+                Console.WriteLine(currentMap.DistanceFromLastSolved);
+                GetVehicles(currentMap.Map);
+                var commands = GetCommands(currentMap.Map, currentVehicleList);
+                foreach (var cmd in commands)
+                {
+                    var newMap = RushGame.ExcecuteCommand(currentMap, cmd);
+
+                    if (ContainsMap(newMap, out var identNode))
+                    {
+                        if (IsGameWon(newMap)) { }
+                        else if (identNode.DistanceFromLastSolved > currentMap.DistanceFromLastSolved + 1)
+                        {
+                            //ha a benne lévő newMap copy-nak a száma > mint newMap.dist... akkor azt átrakjuk a mostani currentMap 'alá'
+                            identNode.Command = cmd;
+                            identNode.DistanceFromLastSolved = currentMap.DistanceFromLastSolved + 1;
+                            identNode.ParentKey = currentMap.Key;
+                            identNode.Ply = currentMap.Ply + 1;
+                        }
+                    }
+                    else
+                    {
+                        if (IsGameWon(newMap))
+                            StoreMap(currentMap, newMap, cmd, 0);
+                        else
+                            StoreMap(currentMap, newMap, cmd, currentMap.DistanceFromLastSolved + 1);
+                    }
+                }
+                currentMap = GetNextMap(currentMap);
+                if (currentMap == null)
+                    return null;
+            }
+
+            var mapString = MapToStringConverter(currentMap.Map);
+            return MapStringToArray(mapString);
+
+
+
+
+
+
+
+
+
+
+
+            /*var currentMap = mapTree[0];
             string mapString;
 
             if (requiredSteps == 1)
@@ -152,7 +203,7 @@ namespace Rush_Hour.Manager
             var chosenMap = getRandomMapWithRequiredSteps(requiredSteps);
             mapString = MapToStringConverter(chosenMap);
 
-            return MapStringToArray(mapString);
+            return MapStringToArray(mapString);*/
         }
 
         private bool PlyUnsolved(int ply)
@@ -276,7 +327,7 @@ namespace Rush_Hour.Manager
             return true;
         }
 
-        private bool ContainsMap(Dictionary<int, MapObject> currentMap)
+        private bool ContainsMap(Dictionary<int, MapObject> currentMap, out MapNode identNode)
         {
             // Megmondja, hogy az új map létezik-e
             // Azért int, hogy állapotgéppel meg lehessen oldani
@@ -285,6 +336,7 @@ namespace Rush_Hour.Manager
 
             var currentMapString = MapToStringConverter(currentMap);
             bool matchingExists = false;
+            identNode = default;
 
             foreach (var node in mapTree)
             {
@@ -297,13 +349,16 @@ namespace Rush_Hour.Manager
                 }
 
                 if (changeMatchingValuable)
+                {
                     matchingExists = true;
+                    identNode = node;
+                }
             }
 
             return matchingExists;
         }
 
-        private void StoreMap(MapNode currentMap, Dictionary<int, MapObject> newMap, string cmd)
+        private void StoreMap(MapNode currentMap, Dictionary<int, MapObject> newMap, string cmd, int distFromSolved = -1)
         {
             // Berakja a lista végére az új mapet
 
@@ -312,7 +367,7 @@ namespace Rush_Hour.Manager
             var ply = currentMap.Ply + 1;
             var mapString = MapToStringConverter(newMap);
 
-            mapTree.Add(new MapNode(uniqueKey, parentKey, newMap, cmd, ply, mapString));
+            mapTree.Add(new MapNode(uniqueKey, parentKey, newMap, cmd, ply, mapString, distFromSolved));
         }
 
         private bool IsGameWon(Dictionary<int, MapObject> map)
