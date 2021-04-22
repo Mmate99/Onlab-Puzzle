@@ -73,12 +73,19 @@ namespace Rush_Hour.Manager
             var currentMap = mapTree[0];
             currentMap.DistanceFromLastSolved = 0;  //A gyökérben biztos, hogy megoldott node lesz.
             currentMap.MapString = MapToStringConverter(currentMap.Map);
-            
-            while (currentMap?.DistanceFromLastSolved < requiredSteps)
+            var lastPly = 1000;    // Ezt csináljuk meg jobban azért...
+            var setLastPly = true;
+            var solutionExists = false;
+
+
+            while (currentMap?.Ply < lastPly)
             {
                 Console.WriteLine(currentMap.DistanceFromLastSolved);
+                dh.Draw(currentMap);
                 GetVehicles(currentMap.Map);
                 var commands = GetCommands(currentMap.Map, currentVehicleList);
+
+                commands.RemoveAll(cmd => cmd.StartsWith(StartsWithSpecificCar(currentMap.Command)));
                 foreach (var cmd in commands)
                 {
                     var newMap = RushGame.ExcecuteCommand(currentMap, cmd);
@@ -101,14 +108,24 @@ namespace Rush_Hour.Manager
                             StoreMap(currentMap, newMap, cmd, 0);
                         else
                             StoreMap(currentMap, newMap, cmd, currentMap.DistanceFromLastSolved + 1);
+                        if (mapTree.Last().DistanceFromLastSolved == requiredSteps && setLastPly)
+                        {
+                            solutionExists = true;
+                            setLastPly = false;
+                            lastPly = mapTree.Last().Ply + 1;
+                        }
                     }
                 }
                 currentMap = GetNextMap(currentMap);
-                if (currentMap == null)
+                if (currentMap == null && !solutionExists)
                     return null;
             }
 
-            var mapString = MapToStringConverter(currentMap.Map);
+            List<MapNode> nodesFittingTheRequirement = mapTree.FindAll(node => node.DistanceFromLastSolved == requiredSteps);
+            Random rnd = new Random();
+            var randomNode = nodesFittingTheRequirement[rnd.Next(0, nodesFittingTheRequirement.Count())];
+
+            var mapString = MapToStringConverter(randomNode.Map);   //currentMap.Map);
             return MapStringToArray(mapString);
 
 
@@ -204,6 +221,11 @@ namespace Rush_Hour.Manager
             mapString = MapToStringConverter(chosenMap);
 
             return MapStringToArray(mapString);*/
+        }
+
+        private char StartsWithSpecificCar(string cmd)
+        {
+            return (cmd.Equals(string.Empty)) ? '_' : cmd.ElementAt(0);
         }
 
         private bool PlyUnsolved(int ply)
