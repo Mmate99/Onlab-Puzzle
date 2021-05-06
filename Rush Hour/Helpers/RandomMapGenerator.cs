@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace Rush_Hour.Helpers
 {
@@ -10,9 +12,9 @@ namespace Rush_Hour.Helpers
         private int i, j;
         private char carLetter = 'b';
 
-        public string[] GenerateMap(int carNum)
+        public string[] GenerateMap(int carNum, bool monteCarloMap)
         {
-            InitMap();
+            InitMap(monteCarloMap);
             var r = new Random();
 
             while (carNumber < carNum)
@@ -47,7 +49,7 @@ namespace Rush_Hour.Helpers
             return map;
         }
 
-        private void InitMap()
+        private void InitMap(bool mcMap)
         {
             map = new string[8];
 
@@ -59,13 +61,23 @@ namespace Rush_Hour.Helpers
                 map[i] = "#      #";
             }
 
-            map[3] = "#    aa0";
+            var r = new Random();
+            int aStartIndex = mcMap ? r.Next(1, 5) : 5;
+
+            var sb = new StringBuilder("#      0");
+            sb[aStartIndex] = 'a';
+            sb[aStartIndex + 1] = 'a';
+
+            map[3] = sb.ToString();
         }
 
         private void PutCarOnMap()
         {
             var diffHor = isCarHorizontal ? 1 : 0;
             var diffVer = isCarHorizontal ? 0 : 1;
+
+            if (isCarHorizontal && i == 3)
+                return;
 
             if ((map[i][j] == ' ') && (map[i+diffVer][j+diffHor] == ' ') && (isCarSizeTwo ? true : (map[i + diffVer * 2][j + diffHor * 2] == ' ')))
             {

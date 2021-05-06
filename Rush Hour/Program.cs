@@ -28,7 +28,6 @@ namespace Rush_Hour
                     while (game.GameStillOn)
                     {
                         var command = Console.ReadLine();
-                        //game.ExcecuteCommand(game.Map, command);
                         dh.Draw(game);
                     }
 
@@ -36,38 +35,70 @@ namespace Rush_Hour
                     break;
 
                 case "G":
-                    // Létrehozunk véletlenül egy játékot, aztán meg "megoldjuk visszafelé"
-                    var mapGenerated = false;
-                    var mapArray = new string[1];
-
-                    while (!mapGenerated)
+                    var genType = Console.ReadLine();
+                    if (genType == "M")
                     {
-                        var mg = new RandomMapGenerator();
-                        var map = File.ReadAllLines("map.txt"); //mg.GenerateMap(8);
-
-                        //var lines2 = File.ReadAllLines("map.txt");
-                        game.MapWidth = map[0].Length;
-                        game.MapHeight = map.Length;
-
-                        InitializeGame(map);
-
                         Console.WriteLine("Hány lépésből álljon a puzzle?");
                         var requiredSteps = Int32.Parse(Console.ReadLine());
 
-                        var gm = new GameManager(game);
-                        mapArray = gm.MakeGame(requiredSteps);
+                        while (true)
+                        {
+                            var mg = new RandomMapGenerator();
+                            var map = mg.GenerateMap(10, true);
+                            game.MapWidth = map[0].Length;
+                            game.MapHeight = map.Length;
+                            InitializeGame(map);
+                            var gm = new GameManager(game);
 
-                        if (mapArray != null)
-                            mapGenerated = true;
+                            var stepsToSolve = gm.SolveGame();
+                            if (stepsToSolve >= requiredSteps - 1)
+                            {
+                                Console.WriteLine("A generált pálya:");
 
-                        game.Map = new Dictionary<int, MapObject>();
+                                foreach (var mapLine in map)
+                                {
+                                    Console.WriteLine(mapLine);
+                                }
+
+                                break;
+                            }
+                            game.Map = new Dictionary<int, MapObject>();
+                        }
                     }
-
-                    Console.WriteLine("A generált pálya:");
-
-                    foreach(var mapLine in mapArray)
+                    else
                     {
-                        Console.WriteLine(mapLine);
+                        // Létrehozunk véletlenül egy játékot, aztán meg "megoldjuk visszafelé"
+                        var mapGenerated = false;
+                        var mapArray = new string[1];
+
+                        while (!mapGenerated)
+                        {
+                            var mg = new RandomMapGenerator();
+                            var map = mg.GenerateMap(8, false);
+
+                            game.MapWidth = map[0].Length;
+                            game.MapHeight = map.Length;
+
+                            InitializeGame(map);
+
+                            Console.WriteLine("Hány lépésből álljon a puzzle?");
+                            var requiredSteps = Int32.Parse(Console.ReadLine());
+
+                            var gm = new GameManager(game);
+                            mapArray = gm.MakeGame(requiredSteps);
+
+                            if (mapArray != null)
+                                mapGenerated = true;
+
+                            game.Map = new Dictionary<int, MapObject>();
+                        }
+
+                        Console.WriteLine("A generált pálya:");
+
+                        foreach (var mapLine in mapArray)
+                        {
+                            Console.WriteLine(mapLine);
+                        }
                     }
 
                     break;

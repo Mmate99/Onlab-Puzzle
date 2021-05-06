@@ -27,7 +27,7 @@ namespace Rush_Hour.Manager
             mapTree.Add(new MapNode(game.Map));
         }
 
-        public void SolveGame()
+        public int SolveGame()
         {
             var currentMap = mapTree[0];
             GetVehicles(currentMap.Map);
@@ -62,10 +62,15 @@ namespace Rush_Hour.Manager
                     {
                         StoreMap(currentMap, newMap, cmd);
                         if (IsGameWon(newMap))
+                        {
                             End();
+                            return currentMap.Ply;
+                        }
                     }
                 }
             }
+
+            return -1;
         }
 
         public string[] MakeGame(int requiredSteps)
@@ -76,9 +81,10 @@ namespace Rush_Hour.Manager
             var lastPly = 1000;    // Ezt csináljuk meg jobban azért...
             var setLastPly = true;
             var solutionExists = false;
+            var nodesFittingTheRequirement = new List<MapNode>();
 
 
-            while (currentMap?.Ply < lastPly)
+            while (true)
             {
                 Console.WriteLine(currentMap.DistanceFromLastSolved);
                 dh.Draw(currentMap);
@@ -119,9 +125,21 @@ namespace Rush_Hour.Manager
                 currentMap = GetNextMap(currentMap);
                 if (currentMap == null && !solutionExists)
                     return null;
+
+                if (currentMap?.Ply >= lastPly)
+                {
+                    nodesFittingTheRequirement = mapTree.FindAll(node => node.DistanceFromLastSolved == requiredSteps);
+                    if (nodesFittingTheRequirement.Any())
+                        break;
+                    else
+                    {
+                        solutionExists = false;
+                        setLastPly = true;
+                        lastPly = 1000;
+                    }
+                }
             }
 
-            List<MapNode> nodesFittingTheRequirement = mapTree.FindAll(node => node.DistanceFromLastSolved == requiredSteps);
             Random rnd = new Random();
             var randomNode = nodesFittingTheRequirement[rnd.Next(0, nodesFittingTheRequirement.Count())];
 
